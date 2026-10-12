@@ -86,7 +86,7 @@ class UserProfile extends ChangeNotifier {
 
   UserProfile({
     this.name = 'Hüseyin Canlı',
-    this.email = 'huseyin@gymtrack.com',
+    this.email = 'huseyincanli@gmail.com',
     this.photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
     this.customPhotoBase64,
     this.isLoggedIn = false,
@@ -129,6 +129,10 @@ class UserProfile extends ChangeNotifier {
       ),
     ];
   }
+
+  /// Yönetici (Admin) Kontrolü
+  /// Sadece belirtilen e-posta ve oturum açıkken egzersiz & form düzenleme yetkisi tanınır
+  bool get isAdmin => isLoggedIn && email.trim().toLowerCase() == 'huseyincanli@gmail.com';
 
   // Mifflin-St Jeor Formülü ile BMR ve TDEE bazlı Dinamik Kalori & Makro Hesaplama
   void _recalculateNutrition() {

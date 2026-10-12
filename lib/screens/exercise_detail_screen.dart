@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
+import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
 import 'exercise_edit_dialog.dart';
 
@@ -36,16 +37,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final exercise = _currentExercise;
+    final isAdmin = UserSession.current.isAdmin;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(exercise.name),
         actions: [
-          IconButton(
-            tooltip: "Formu & .GIF'i Düzenle",
-            icon: const Icon(Icons.edit_note_rounded, color: AppTheme.accent),
-            onPressed: _openEditDialog,
-          ),
+          if (isAdmin)
+            IconButton(
+              tooltip: "Formu & .GIF'i Düzenle (Yönetici)",
+              icon: const Icon(Icons.edit_note_rounded, color: AppTheme.accent),
+              onPressed: _openEditDialog,
+            ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: () {

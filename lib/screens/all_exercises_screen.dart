@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
+import '../models/user_profile.dart';
 import '../services/exercise_repository.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
@@ -99,6 +100,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
   @override
   Widget build(BuildContext context) {
     final exercises = _filteredExercises;
+    final isAdmin = UserSession.current.isAdmin;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -108,16 +110,18 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
-          IconButton(
-            tooltip: "İnternet Sitesinden Senkronize Et & JSON",
-            icon: const Icon(Icons.cloud_sync_rounded, color: AppTheme.accent),
-            onPressed: _openWebSyncModal,
-          ),
-          IconButton(
-            tooltip: "Yeni Egzersiz / GIF Ekle",
-            icon: const Icon(Icons.add_circle, color: AppTheme.primary),
-            onPressed: _openAddExerciseDialog,
-          ),
+          if (isAdmin) ...[
+            IconButton(
+              tooltip: "İnternet Sitesinden Senkronize Et & JSON",
+              icon: const Icon(Icons.cloud_sync_rounded, color: AppTheme.accent),
+              onPressed: _openWebSyncModal,
+            ),
+            IconButton(
+              tooltip: "Yeni Egzersiz / GIF Ekle",
+              icon: const Icon(Icons.add_circle, color: AppTheme.primary),
+              onPressed: _openAddExerciseDialog,
+            ),
+          ],
         ],
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -256,6 +260,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
 
   Widget _buildExerciseCard(BuildContext context, Exercise ex) {
     final muscleName = _getMuscleGroupName(ex.muscleGroup);
+    final isAdmin = UserSession.current.isAdmin;
 
     return Container(
       decoration: BoxDecoration(
@@ -386,16 +391,17 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
                 ),
 
                 const SizedBox(width: 4),
-                IconButton(
-                  tooltip: "Düzenle & GIF Değiştir",
-                  icon: const Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 22),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => ExerciseEditDialog(exercise: ex),
-                    );
-                  },
-                ),
+                if (isAdmin)
+                  IconButton(
+                    tooltip: "Düzenle & GIF Değiştir",
+                    icon: const Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 22),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => ExerciseEditDialog(exercise: ex),
+                      );
+                    },
+                  ),
                 const Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: Colors.white30,

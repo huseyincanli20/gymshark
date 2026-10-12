@@ -162,7 +162,7 @@ class _ExerciseEditDialogState extends State<ExerciseEditDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        isEdit ? "Egzersiz & Form Düzenle" : "Yeni Egzersiz & GIF Ekle",
+                        isEdit ? "Egzersiz & Form Düzenle (Yönetici)" : "Yeni Egzersiz & GIF Ekle (Yönetici)",
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),

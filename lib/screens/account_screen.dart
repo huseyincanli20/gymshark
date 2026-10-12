@@ -63,10 +63,15 @@ class _AccountScreenState extends State<AccountScreen> {
       );
     }
 
+    // Yönetici (Admin) Kimlik Kontrolü
+    final isAdminCredentials = email.toLowerCase() == 'huseyincanli@gmail.com' && password == '15715799';
+
     setState(() {
       profile.isLoggedIn = true;
       profile.email = email;
-      if (_isRegisterMode && name.isNotEmpty) {
+      if (isAdminCredentials) {
+        profile.name = "Hüseyin Canlı";
+      } else if (_isRegisterMode && name.isNotEmpty) {
         profile.name = name;
       }
     });
@@ -74,10 +79,13 @@ class _AccountScreenState extends State<AccountScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isRegisterMode 
-              ? "Hesabınız özel buluta kaydedildi ve aktif edildi! ☁️🎉" 
-              : "Giriş başarılı! Hoş geldiniz 🎉"),
-          backgroundColor: AppTheme.accent,
+          content: Text(isAdminCredentials
+              ? "👑 Yönetici Girişi Başarılı! Hoş geldiniz Hüseyin Canlı (Egzersiz Düzenleme Yetkisi Aktif)"
+              : (_isRegisterMode 
+                  ? "Hesabınız özel buluta kaydedildi ve aktif edildi! ☁️🎉" 
+                  : "Giriş başarılı! Hoş geldiniz 🎉")),
+          backgroundColor: isAdminCredentials ? Colors.amber.shade800 : AppTheme.accent,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -563,55 +571,61 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ),
 
-        const SizedBox(height: 20),
+        if (profile.isAdmin) ...[
+          const SizedBox(height: 20),
 
-        // 5. EGZERSİZLER & İNTERNET SENKRONİZASYONU
-        _buildSectionHeader("Egzersiz & Form Yönetimi", Icons.cloud_sync_rounded, AppTheme.accent),
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+          // 5. EGZERSİZLER & İNTERNET SENKRONİZASYONU (SADECE YÖNETİCİYE ÖZEL)
+          _buildSectionHeader("Egzersiz & Form Yönetimi (Yönetici)", Icons.admin_panel_settings_rounded, Colors.amber),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Colors.amber, width: 1.2),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.sync_alt_rounded, color: Colors.amber),
                   ),
-                  child: const Icon(Icons.sync_alt_rounded, color: AppTheme.accent),
+                  title: const Text("İnternet Sitesinden Senkronize Et", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text("Web sitesi API veya JSON üzerinden egzersiz ve GIF çekin", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.amber, size: 20),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => const ExerciseWebSyncModal(),
+                    );
+                  },
                 ),
-                title: const Text("İnternet Sitesinden Senkronize Et", style: TextStyle(fontSize: 14)),
-                subtitle: const Text("Web sitesi API veya JSON üzerinden egzersiz ve GIF çekin", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                trailing: const Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 20),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => const ExerciseWebSyncModal(),
-                  );
-                },
-              ),
-              _buildDivider(),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10),
+                _buildDivider(),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primary),
                   ),
-                  child: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primary),
+                  title: const Text("Yeni Egzersiz / GIF Ekle", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text("Özel hareket, form talimatı ve .gif linki tanımlayın", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  trailing: const Icon(Icons.add_circle, color: AppTheme.primary, size: 22),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => const ExerciseEditDialog(),
+                    );
+                  },
                 ),
-                title: const Text("Yeni Egzersiz / GIF Ekle", style: TextStyle(fontSize: 14)),
-                subtitle: const Text("Özel hareket, form talimatı ve .gif linki tanımlayın", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                trailing: const Icon(Icons.add_circle, color: AppTheme.primary, size: 22),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => const ExerciseEditDialog(),
-                  );
-                },
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
 
         const SizedBox(height: 20),
 
