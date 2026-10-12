@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
-import '../data/mock_data.dart';
+import '../services/exercise_repository.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
+import 'exercise_edit_dialog.dart';
+import 'exercise_web_sync_modal.dart';
 
 class AllExercisesScreen extends StatefulWidget {
   const AllExercisesScreen({super.key});
@@ -16,6 +18,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
   String _selectedCategory = "Tümü";
   String _searchQuery = "";
   final TextEditingController _searchController = TextEditingController();
+  final ExerciseRepository _repo = ExerciseRepository.instance;
 
   final List<String> _categories = [
     "Tümü",
@@ -28,7 +31,18 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _repo.addListener(_onRepoUpdated);
+  }
+
+  void _onRepoUpdated() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    _repo.removeListener(_onRepoUpdated);
     _searchController.dispose();
     super.dispose();
   }
@@ -53,7 +67,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
   }
 
   List<Exercise> get _filteredExercises {
-    return MockData.exercises.where((ex) {
+    return _repo.exercises.where((ex) {
       final muscleName = _getMuscleGroupName(ex.muscleGroup).toLowerCase();
       final matchesCategory = _selectedCategory == "Tümü" ||
           muscleName.contains(_selectedCategory.toLowerCase()) ||
@@ -68,6 +82,20 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
     }).toList();
   }
 
+  void _openAddExerciseDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const ExerciseEditDialog(),
+    );
+  }
+
+  void _openWebSyncModal() {
+    showDialog(
+      context: context,
+      builder: (context) => const ExerciseWebSyncModal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final exercises = _filteredExercises;
@@ -79,6 +107,18 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
           "Egzersiz Rehberi & Formlar",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
+        actions: [
+          IconButton(
+            tooltip: "İnternet Sitesinden Senkronize Et & JSON",
+            icon: const Icon(Icons.cloud_sync_rounded, color: AppTheme.accent),
+            onPressed: _openWebSyncModal,
+          ),
+          IconButton(
+            tooltip: "Yeni Egzersiz / GIF Ekle",
+            icon: const Icon(Icons.add_circle, color: AppTheme.primary),
+            onPressed: _openAddExerciseDialog,
+          ),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -345,11 +385,21 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
+                IconButton(
+                  tooltip: "Düzenle & GIF Değiştir",
+                  icon: const Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 22),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => ExerciseEditDialog(exercise: ex),
+                    );
+                  },
+                ),
                 const Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: Colors.white30,
-                  size: 16,
+                  size: 14,
                 ),
               ],
             ),

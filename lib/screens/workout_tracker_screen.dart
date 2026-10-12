@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
 import '../models/user_profile.dart';
-import '../data/mock_data.dart';
+import '../services/exercise_repository.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
 
@@ -64,11 +64,12 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final exercises = ExerciseRepository.instance.exercises;
         return ListView.builder(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          itemCount: MockData.exercises.length,
+          itemCount: exercises.length,
           itemBuilder: (context, index) {
-            final ex = MockData.exercises[index];
+            final ex = exercises[index];
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: AppTheme.surfaceColor,
@@ -97,6 +98,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final exercises = ExerciseRepository.instance.exercises;
         return Column(
           children: [
             const Padding(
@@ -106,9 +108,9 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
             const Divider(height: 1),
             Expanded(
               child: ListView.builder(
-                itemCount: MockData.exercises.length,
+                itemCount: exercises.length,
                 itemBuilder: (context, index) {
-                  final ex = MockData.exercises[index];
+                  final ex = exercises[index];
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor: AppTheme.surfaceColor,

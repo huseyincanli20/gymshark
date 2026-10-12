@@ -12,8 +12,8 @@ class Exercise {
   final String id;
   final String name;
   final MuscleGroup muscleGroup;
-  final String videoUrl; // Demo video / mp4 / youtube
-  final String thumbnailUrl;
+  final String videoUrl; // Demo video / mp4 / youtube / gif
+  final String thumbnailUrl; // Fotoğraf veya Hareketli GIF URL
   final String instructions;
   final String tips;
 
@@ -26,6 +26,57 @@ class Exercise {
     required this.instructions,
     required this.tips,
   });
+
+  Exercise copyWith({
+    String? id,
+    String? name,
+    MuscleGroup? muscleGroup,
+    String? videoUrl,
+    String? thumbnailUrl,
+    String? instructions,
+    String? tips,
+  }) {
+    return Exercise(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      muscleGroup: muscleGroup ?? this.muscleGroup,
+      videoUrl: videoUrl ?? this.videoUrl,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      instructions: instructions ?? this.instructions,
+      tips: tips ?? this.tips,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'muscleGroup': muscleGroup.name,
+    'videoUrl': videoUrl,
+    'thumbnailUrl': thumbnailUrl,
+    'instructions': instructions,
+    'tips': tips,
+  };
+
+  factory Exercise.fromJson(Map<String, dynamic> json) {
+    MuscleGroup group = MuscleGroup.chest;
+    final groupStr = (json['muscleGroup'] ?? '').toString().toLowerCase();
+    for (var g in MuscleGroup.values) {
+      if (g.name.toLowerCase() == groupStr) {
+        group = g;
+        break;
+      }
+    }
+
+    return Exercise(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      muscleGroup: group,
+      videoUrl: json['videoUrl'] ?? '',
+      thumbnailUrl: json['thumbnailUrl'] ?? '',
+      instructions: json['instructions'] ?? '',
+      tips: json['tips'] ?? '',
+    );
+  }
 }
 
 class WorkoutSet {

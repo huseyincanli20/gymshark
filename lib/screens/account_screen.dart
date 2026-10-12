@@ -3,6 +3,8 @@ import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
 import '../utils/device_image_picker.dart';
 import '../services/cloud_auth_service.dart';
+import 'exercise_edit_dialog.dart';
+import 'exercise_web_sync_modal.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -563,7 +565,57 @@ class _AccountScreenState extends State<AccountScreen> {
 
         const SizedBox(height: 20),
 
-        // 5. HAKKIMIZDA
+        // 5. EGZERSİZLER & İNTERNET SENKRONİZASYONU
+        _buildSectionHeader("Egzersiz & Form Yönetimi", Icons.cloud_sync_rounded, AppTheme.accent),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.sync_alt_rounded, color: AppTheme.accent),
+                ),
+                title: const Text("İnternet Sitesinden Senkronize Et", style: TextStyle(fontSize: 14)),
+                subtitle: const Text("Web sitesi API veya JSON üzerinden egzersiz ve GIF çekin", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 20),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => const ExerciseWebSyncModal(),
+                  );
+                },
+              ),
+              _buildDivider(),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.add_photo_alternate_outlined, color: AppTheme.primary),
+                ),
+                title: const Text("Yeni Egzersiz / GIF Ekle", style: TextStyle(fontSize: 14)),
+                subtitle: const Text("Özel hareket, form talimatı ve .gif linki tanımlayın", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.add_circle, color: AppTheme.primary, size: 22),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => const ExerciseEditDialog(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 6. HAKKIMIZDA
         _buildSectionHeader("Hakkımızda", Icons.info_outline_rounded, AppTheme.primary),
         Card(
           child: Column(

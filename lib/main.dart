@@ -6,9 +6,12 @@ import 'screens/progress_screen.dart';
 import 'models/user_profile.dart';
 import 'theme/app_theme.dart';
 
+import 'services/exercise_repository.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await UserSession.init();
+  await ExerciseRepository.instance.init();
   runApp(const GymTrackApp());
 }
 

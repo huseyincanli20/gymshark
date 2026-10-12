@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../data/mock_data.dart';
 import '../models/user_profile.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
+import '../services/exercise_repository.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 import 'all_exercises_screen.dart';
@@ -466,120 +466,126 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SizedBox(
               height: 180,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: MockData.exercises.length,
-                itemBuilder: (context, index) {
-                  final ex = MockData.exercises[index];
-                  return GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push<Exercise>(
-                        context,
-                        MaterialPageRoute(builder: (context) => ExerciseDetailScreen(exercise: ex)),
-                      );
-                      if (result != null) {
-                        WorkoutManager.instance.addExercise(result);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("${result.name} canlı antrenman takibine eklendi! 💪"),
-                              backgroundColor: AppTheme.accent,
-                              action: SnackBarAction(
-                                label: "Antrenmana Git",
-                                textColor: Colors.black,
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const WorkoutTrackerScreen()),
-                                  );
-                                },
-                              ),
-                            ),
+              child: ListenableBuilder(
+                listenable: ExerciseRepository.instance,
+                builder: (context, _) {
+                  final exercises = ExerciseRepository.instance.exercises;
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: exercises.length,
+                    itemBuilder: (context, index) {
+                      final ex = exercises[index];
+                      return GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push<Exercise>(
+                            context,
+                            MaterialPageRoute(builder: (context) => ExerciseDetailScreen(exercise: ex)),
                           );
-                        }
-                      }
-                    },
-                    child: Container(
-                      width: 148,
-                      margin: const EdgeInsets.only(right: 14),
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardColor,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                                child: Image.network(
-                                  ex.thumbnailUrl,
-                                  height: 100,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.75),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.auto_stories, size: 11, color: AppTheme.primary),
-                                      SizedBox(width: 3),
-                                      Text(
-                                        "Form Gör",
-                                        style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
+                          if (result != null) {
+                            WorkoutManager.instance.addExercise(result);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("${result.name} canlı antrenman takibine eklendi! 💪"),
+                                  backgroundColor: AppTheme.accent,
+                                  action: SnackBarAction(
+                                    label: "Antrenmana Git",
+                                    textColor: Colors.black,
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const WorkoutTrackerScreen()),
+                                      );
+                                    },
                                   ),
                                 ),
-                              ),
-                            ],
+                              );
+                            }
+                          }
+                        },
+                        child: Container(
+                          width: 148,
+                          margin: const EdgeInsets.only(right: 14),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white10),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ex.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                                const SizedBox(height: 3),
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: AppTheme.accent,
-                                        shape: BoxShape.circle,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                                    child: Image.network(
+                                      ex.thumbnailUrl,
+                                      height: 100,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.75),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.auto_stories, size: 11, color: AppTheme.primary),
+                                          SizedBox(width: 3),
+                                          Text(
+                                            "Form Gör",
+                                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Text(
-                                      ex.muscleGroup.name.toUpperCase(),
-                                      style: const TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.w600),
+                                      ex.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.accent,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          ex.muscleGroup.name.toUpperCase(),
+                                          style: const TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

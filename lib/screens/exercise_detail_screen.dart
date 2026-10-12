@@ -1,18 +1,51 @@
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
 import '../theme/app_theme.dart';
+import 'exercise_edit_dialog.dart';
 
-class ExerciseDetailScreen extends StatelessWidget {
+class ExerciseDetailScreen extends StatefulWidget {
   final Exercise exercise;
 
   const ExerciseDetailScreen({super.key, required this.exercise});
 
   @override
+  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
+}
+
+class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
+  late Exercise _currentExercise;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentExercise = widget.exercise;
+  }
+
+  void _openEditDialog() async {
+    final updated = await showDialog<Exercise>(
+      context: context,
+      builder: (ctx) => ExerciseEditDialog(exercise: _currentExercise),
+    );
+    if (updated != null && mounted) {
+      setState(() {
+        _currentExercise = updated;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final exercise = _currentExercise;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(exercise.name),
         actions: [
+          IconButton(
+            tooltip: "Formu & .GIF'i Düzenle",
+            icon: const Icon(Icons.edit_note_rounded, color: AppTheme.accent),
+            onPressed: _openEditDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
