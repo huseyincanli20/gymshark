@@ -4,6 +4,7 @@ import '../models/user_profile.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
 import '../services/exercise_repository.dart';
+import '../utils/app_locale.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 import 'all_exercises_screen.dart';
@@ -71,11 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("GymTrack", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, color: AppTheme.primary)),
-            Text("Bugün göğüs ve triceps günü 🔥", style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+            const Text("GymTrack", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, color: AppTheme.primary)),
+            Text(AppLocale.isEnglish ? "Today is push day (Chest & Shoulders) 🔥" : "Bugün göğüs ve omuz günü 🔥", style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
           ],
         ),
         actions: [
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? const Icon(Icons.person, size: 18, color: AppTheme.primary)
                   : null,
             ),
-            tooltip: "Hesabım & Profil",
+            tooltip: AppLocale.get('account_title'),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -129,13 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Günün Antrenmanı",
-                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                        Text(
+                          AppLocale.isEnglish ? "Today's Workout" : "Günün Antrenmanı",
+                          style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          "Push Day (Göğüs & Omuz)",
+                          "Push Day (Chest & Shoulders)",
                           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
@@ -153,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               MaterialPageRoute(builder: (context) => const WorkoutTrackerScreen()),
                             );
                           },
-                          child: const Text("Şimdi Başla", style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text(AppLocale.isEnglish ? "Start Now" : "Şimdi Başla", style: const TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -169,13 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.fitness_center, color: Colors.orangeAccent, size: 18),
-                    SizedBox(width: 6),
+                    const Icon(Icons.fitness_center, color: Colors.orangeAccent, size: 18),
+                    const SizedBox(width: 6),
                     Text(
-                      "Apple Fitness & Aktivite",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      AppLocale.get('fitness_activity'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ],
                 ),
@@ -200,9 +201,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               )
                             : const Icon(Icons.sync_rounded, color: AppTheme.accent, size: 14),
                         const SizedBox(width: 4),
-                        const Text(
-                          "Fitness Eşitle",
-                          style: TextStyle(
+                        Text(
+                          AppLocale.get('sync_fitness'),
+                          style: const TextStyle(
                             color: AppTheme.accent,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
@@ -257,9 +258,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            "Yakılan Kalori",
-                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+                          Text(
+                            AppLocale.get('calories_burned'),
+                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -280,8 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 8),
                           Text(
                             profile.todayBurnedCalories > 0
-                                ? "Fitness Halkası 🔥"
-                                : "Aktivite bekleniyor",
+                                ? (AppLocale.isEnglish ? "Fitness Ring 🔥" : "Fitness Halkası 🔥")
+                                : (AppLocale.isEnglish ? "Waiting for activity" : "Aktivite bekleniyor"),
                             style: const TextStyle(fontSize: 10, color: AppTheme.accent),
                           ),
                         ],
@@ -328,9 +329,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            "Günlük Adım",
-                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+                          Text(
+                            AppLocale.get('steps_taken'),
+                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -372,23 +373,23 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.calendar_month_rounded, color: AppTheme.accent, size: 20),
-                    SizedBox(width: 8),
-                    Text("Haftalık Aktivite", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.calendar_month_rounded, color: AppTheme.accent, size: 20),
+                    const SizedBox(width: 8),
+                    Text(AppLocale.get('weekly_activity'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 Row(
                   children: [
                     Text(
-                      "${profile.completedDaysThisWeek.length}/${profile.weeklyWorkoutDays} Gün",
+                      "${profile.completedDaysThisWeek.length}/${profile.weeklyWorkoutDays} ${AppLocale.get('days_unit')}",
                       style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.refresh, size: 18, color: AppTheme.textSecondary),
-                      tooltip: "Haftalık Aktiviteyi Sıfırla",
+                      tooltip: AppLocale.isEnglish ? "Reset Weekly Activity" : "Haftalık Aktiviteyi Sıfırla",
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: () {
@@ -396,12 +397,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           context: context,
                           builder: (context) => AlertDialog(
                             backgroundColor: AppTheme.cardColor,
-                            title: const Text("Aktiviteyi Sıfırla"),
-                            content: const Text("Haftalık antrenman aktivite geçmişini sıfırlamak istiyor musunuz?"),
+                            title: Text(AppLocale.isEnglish ? "Reset Activity" : "Aktiviteyi Sıfırla"),
+                            content: Text(AppLocale.isEnglish
+                                ? "Do you want to reset your weekly workout activity history?"
+                                : "Haftalık antrenman aktivite geçmişini sıfırlamak istiyor musunuz?"),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text("İptal"),
+                                child: Text(AppLocale.get('cancel')),
                               ),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -409,10 +412,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   profile.resetWeeklyActivity();
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Haftalık aktivite sıfırlandı. Yeni haftaya hazırsınız! 🔄")),
+                                    SnackBar(content: Text(AppLocale.isEnglish ? "Weekly activity reset. Ready for the new week! 🔄" : "Haftalık aktivite sıfırlandı. Yeni haftaya hazırsınız! 🔄")),
                                   );
                                 },
-                                child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                                child: Text(AppLocale.get('reset'), style: const TextStyle(color: Colors.white)),
                               ),
                             ],
                           ),
@@ -428,13 +431,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildDayItem("Pzt", 1, profile.completedDaysThisWeek.contains(1)),
-                _buildDayItem("Sal", 2, profile.completedDaysThisWeek.contains(2)),
-                _buildDayItem("Çar", 3, profile.completedDaysThisWeek.contains(3)),
-                _buildDayItem("Per", 4, profile.completedDaysThisWeek.contains(4)),
-                _buildDayItem("Cum", 5, profile.completedDaysThisWeek.contains(5)),
-                _buildDayItem("Cmt", 6, profile.completedDaysThisWeek.contains(6)),
-                _buildDayItem("Paz", 7, profile.completedDaysThisWeek.contains(7)),
+                _buildDayItem(AppLocale.isEnglish ? "Mon" : "Pzt", 1, profile.completedDaysThisWeek.contains(1)),
+                _buildDayItem(AppLocale.isEnglish ? "Tue" : "Sal", 2, profile.completedDaysThisWeek.contains(2)),
+                _buildDayItem(AppLocale.isEnglish ? "Wed" : "Çar", 3, profile.completedDaysThisWeek.contains(3)),
+                _buildDayItem(AppLocale.isEnglish ? "Thu" : "Per", 4, profile.completedDaysThisWeek.contains(4)),
+                _buildDayItem(AppLocale.isEnglish ? "Fri" : "Cum", 5, profile.completedDaysThisWeek.contains(5)),
+                _buildDayItem(AppLocale.isEnglish ? "Sat" : "Cmt", 6, profile.completedDaysThisWeek.contains(6)),
+                _buildDayItem(AppLocale.isEnglish ? "Sun" : "Paz", 7, profile.completedDaysThisWeek.contains(7)),
               ],
             ),
 
@@ -444,11 +447,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.menu_book_rounded, color: AppTheme.primary, size: 20),
-                    SizedBox(width: 8),
-                    Text("Egzersiz Rehberi & Formlar", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.menu_book_rounded, color: AppTheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(AppLocale.get('exercise_guide_title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 TextButton(
@@ -458,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
                     );
                   },
-                  child: const Text("Tümü", style: TextStyle(color: AppTheme.primary)),
+                  child: Text(AppLocale.get('view_all'), style: const TextStyle(color: AppTheme.primary)),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
 import '../models/user_profile.dart';
+import '../utils/app_locale.dart';
 import 'account_screen.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -51,7 +52,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("İlerleme ve İstatistikler"),
+        title: Text(AppLocale.get('progress_title')),
         actions: [
           IconButton(
             icon: Stack(
@@ -84,7 +85,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
               ],
             ),
-            tooltip: "Hesap & Ayarlar",
+            tooltip: AppLocale.get('account_title'),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -105,11 +106,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _buildMetricCard("Mevcut Kilo", "${profile.weightKg} ${profile.weightUnit}", "Boy: ${profile.heightCm.toInt()} ${profile.heightUnit}", AppTheme.accent),
+                  child: _buildMetricCard(AppLocale.get('current_weight'), "${profile.weightKg} ${profile.weightUnit}", "${AppLocale.get('height_label')}: ${profile.heightCm.toInt()} ${profile.heightUnit}", AppTheme.accent),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildMetricCard("Hedef Kilo", "${profile.targetWeightKg} ${profile.weightUnit}", "Fark: ${(profile.weightKg - profile.targetWeightKg).abs().toStringAsFixed(1)} ${profile.weightUnit}", AppTheme.primary),
+                  child: _buildMetricCard(AppLocale.get('target_weight_card'), "${profile.targetWeightKg} ${profile.weightUnit}", "${AppLocale.get('diff_label')}: ${(profile.weightKg - profile.targetWeightKg).abs().toStringAsFixed(1)} ${profile.weightUnit}", AppTheme.primary),
                 ),
               ],
             ),
@@ -119,38 +120,40 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.show_chart, color: AppTheme.primary, size: 20),
-                    SizedBox(width: 6),
+                    const Icon(Icons.show_chart, color: AppTheme.primary, size: 20),
+                    const SizedBox(width: 6),
                     Text(
-                      "Kilo Değişim Grafiği",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      AppLocale.get('weight_chart'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 IconButton(
                   icon: const Icon(Icons.refresh, size: 20, color: AppTheme.textSecondary),
-                  tooltip: "Grafiği Sıfırla",
+                  tooltip: AppLocale.get('reset_chart'),
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         backgroundColor: AppTheme.cardColor,
-                        title: const Text("Kilo Grafiğini Sıfırla"),
-                        content: const Text("Kilo geçmişi sıfırlanıp sadece güncel kilonuz korunacaktır. Emin misiniz?"),
+                        title: Text(AppLocale.get('reset_chart')),
+                        content: Text(AppLocale.isEnglish
+                            ? "Weight history will be reset keeping only your current weight. Are you sure?"
+                            : "Kilo geçmişi sıfırlanıp sadece güncel kilonuz korunacaktır. Emin misiniz?"),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocale.get('cancel'))),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                             onPressed: () {
                               profile.resetWeightHistory();
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Kilo grafiği sıfırlandı! 🔄")),
+                                SnackBar(content: Text(AppLocale.isEnglish ? "Weight chart reset! 🔄" : "Kilo grafiği sıfırlandı! 🔄")),
                               );
                             },
-                            child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                            child: Text(AppLocale.get('reset'), style: const TextStyle(color: Colors.white)),
                           )
                         ],
                       ),
@@ -171,15 +174,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 border: Border.all(color: Colors.white10),
               ),
               child: spots.isEmpty
-                  ? const Center(
-                      child: Text("Henüz kilo kaydı bulunmuyor. '+' butonu ile ekleyebilirsiniz.", style: TextStyle(color: AppTheme.textSecondary)),
+                  ? Center(
+                      child: Text(AppLocale.get('no_weight_logs'), style: const TextStyle(color: AppTheme.textSecondary)),
                     )
                   : LineChart(
                       LineChartData(
                         gridData: FlGridData(
                           show: true,
                           drawVerticalLine: false,
-                          getDrawingHorizontalLine: (value) => FlLine(
+                          getDrawingHorizontalLine: (value) => const FlLine(
                             color: AppTheme.surfaceColor,
                             strokeWidth: 1,
                           ),
@@ -249,13 +252,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.emoji_events, color: Colors.amber, size: 22),
-                    SizedBox(width: 8),
+                    const Icon(Icons.emoji_events, color: Colors.amber, size: 22),
+                    const SizedBox(width: 8),
                     Text(
-                      "Kişisel Rekorlar (PR)",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      AppLocale.get('personal_records'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -263,26 +266,28 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   TextButton.icon(
                     style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
                     icon: const Icon(Icons.delete_sweep, size: 18),
-                    label: const Text("Tümünü Sil", style: TextStyle(fontSize: 12)),
+                    label: Text(AppLocale.get('delete_all'), style: const TextStyle(fontSize: 12)),
                     onPressed: () {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
                           backgroundColor: AppTheme.cardColor,
-                          title: const Text("Rekorları Sil"),
-                          content: const Text("Tüm kişisel rekorlarınızı silmek istediğinize emin misiniz?"),
+                          title: Text(AppLocale.isEnglish ? "Delete Records" : "Rekorları Sil"),
+                          content: Text(AppLocale.isEnglish
+                              ? "Are you sure you want to delete all your personal records?"
+                              : "Tüm kişisel rekorlarınızı silmek istediğinize emin misiniz?"),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                            TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocale.get('cancel'))),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                               onPressed: () {
                                 profile.clearAllPRs();
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Tüm rekorlar temizlendi! 🗑️")),
+                                  SnackBar(content: Text(AppLocale.isEnglish ? "All records cleared! 🗑️" : "Tüm rekorlar temizlendi! 🗑️")),
                                 );
                               },
-                              child: const Text("Sil", style: TextStyle(color: Colors.white)),
+                              child: Text(AppLocale.get('delete'), style: const TextStyle(color: Colors.white)),
                             ),
                           ],
                         ),
@@ -306,15 +311,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   children: [
                     Icon(Icons.military_tech_outlined, size: 48, color: Colors.white.withOpacity(0.3)),
                     const SizedBox(height: 10),
-                    const Text(
-                      "Henüz kayıtlı bir rekor yok",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    Text(
+                      AppLocale.get('no_records_yet'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      "Canlı antrenman takibinden setlerinizi tamamladığınızda veya '+' butonuna basarak yeni rekor ekleyebilirsiniz.",
+                    Text(
+                      AppLocale.get('no_records_hint'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
@@ -366,7 +371,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         ),
         title: Text(pr.exerciseName, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
-          "Tahmini 1RM: ${pr.calculated1RM.toStringAsFixed(1)} kg • (${pr.reps} tekrar)",
+          "${AppLocale.get('est_1rm')}: ${pr.calculated1RM.toStringAsFixed(1)} kg • (${pr.reps} ${AppLocale.isEnglish ? 'reps' : 'tekrar'})",
           style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
         ),
         trailing: Row(

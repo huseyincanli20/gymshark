@@ -3,6 +3,7 @@ import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
 import '../utils/device_image_picker.dart';
 import '../services/cloud_auth_service.dart';
+import '../utils/app_locale.dart';
 import 'exercise_edit_dialog.dart';
 import 'exercise_web_sync_modal.dart';
 
@@ -141,12 +142,14 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(profile.isLoggedIn ? "Hesabım & Ayarlar" : (_isRegisterMode ? "Kayıt Ol" : "Giriş Yap")),
+        title: Text(profile.isLoggedIn
+            ? AppLocale.get('account_title')
+            : (_isRegisterMode ? AppLocale.get('tab_register') : AppLocale.get('tab_login'))),
         actions: [
           if (profile.isLoggedIn)
             IconButton(
               icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-              tooltip: "Çıkış Yap",
+              tooltip: AppLocale.get('logout'),
               onPressed: _handleLogout,
             )
         ],
@@ -178,15 +181,15 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              _isRegisterMode ? "GymTrack'e Kayıt Olun" : "GymTrack Hesabınıza Giriş Yapın",
+              _isRegisterMode ? AppLocale.get('register_title') : AppLocale.get('login_title'),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
             Text(
               _isRegisterMode
-                  ? "Sağlık ve antrenman yolculuğunuza hemen başlayın."
-                  : "Sağlık detaylarınız, antrenman hedefleriniz ve tercihleriniz senkronize edilsin.",
+                  ? AppLocale.get('register_subtitle')
+                  : AppLocale.get('login_subtitle'),
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
@@ -218,7 +221,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            "Giriş Yap",
+                            AppLocale.get('tab_login'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: !_isRegisterMode ? Colors.white : AppTheme.textSecondary,
@@ -246,7 +249,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            "Kayıt Ol",
+                            AppLocale.get('tab_register'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: _isRegisterMode ? Colors.white : AppTheme.textSecondary,
@@ -265,7 +268,7 @@ class _AccountScreenState extends State<AccountScreen> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: "Ad Soyad",
+                  labelText: AppLocale.get('input_fullname'),
                   prefixIcon: const Icon(Icons.badge_outlined, color: AppTheme.primary),
                   filled: true,
                   fillColor: AppTheme.cardColor,
@@ -278,7 +281,7 @@ class _AccountScreenState extends State<AccountScreen> {
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                labelText: "E-Posta",
+                labelText: AppLocale.get('input_email'),
                 prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.primary),
                 filled: true,
                 fillColor: AppTheme.cardColor,
@@ -290,7 +293,7 @@ class _AccountScreenState extends State<AccountScreen> {
               controller: _passwordController,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
-                labelText: "Şifre",
+                labelText: AppLocale.get('input_password'),
                 prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primary),
                 suffixIcon: IconButton(
                   icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: AppTheme.textSecondary),
@@ -311,7 +314,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
                 onPressed: _handleAuthSubmit,
                 child: Text(
-                  _isRegisterMode ? "Hesap Oluştur ve Başla" : "Giriş Yap",
+                  _isRegisterMode ? AppLocale.get('btn_register') : AppLocale.get('btn_login'),
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
@@ -387,36 +390,36 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 20),
 
         // 1. SAĞLIK AYRINTILARI
-        _buildSectionHeader("Sağlık Ayrıntıları", Icons.favorite_rounded, Colors.redAccent),
+        _buildSectionHeader(AppLocale.get('sec_health'), Icons.favorite_rounded, Colors.redAccent),
         Card(
           child: Column(
             children: [
-              _buildTile("Boy", "${profile.heightCm.toInt()} ${profile.heightUnit}", Icons.height, () {
-                _showEditDialog("Boy Güncelle (cm)", profile.heightCm.toString(), (val) {
+              _buildTile(AppLocale.get('height'), "${profile.heightCm.toInt()} ${profile.heightUnit}", Icons.height, () {
+                _showEditDialog("${AppLocale.get('height')} (${profile.heightUnit})", profile.heightCm.toString(), (val) {
                   final v = double.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newHeight: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Kilo", "${profile.weightKg} ${profile.weightUnit}", Icons.monitor_weight_outlined, () {
-                _showEditDialog("Kilo Güncelle (kg)", profile.weightKg.toString(), (val) {
+              _buildTile(AppLocale.get('weight'), "${profile.weightKg} ${profile.weightUnit}", Icons.monitor_weight_outlined, () {
+                _showEditDialog("${AppLocale.get('weight')} (${profile.weightUnit})", profile.weightKg.toString(), (val) {
                   final v = double.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newWeight: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Yaş", "${profile.age}", Icons.cake_outlined, () {
-                _showEditDialog("Yaş", profile.age.toString(), (val) {
+              _buildTile(AppLocale.get('age'), "${profile.age}", Icons.cake_outlined, () {
+                _showEditDialog(AppLocale.get('age'), profile.age.toString(), (val) {
                   final v = int.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newAge: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Cinsiyet", profile.gender, Icons.transgender, () {
+              _buildTile(AppLocale.get('gender'), profile.gender, Icons.transgender, () {
                 _showGenderPicker();
               }),
               _buildDivider(),
-              _buildTile("Kan Grubu", profile.bloodGroup, Icons.bloodtype, () {
+              _buildTile(AppLocale.get('blood_group'), profile.bloodGroup, Icons.bloodtype, () {
                 _showBloodGroupPicker();
               }),
             ],
@@ -426,33 +429,33 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 20),
 
         // 2. HEDEFLER
-        _buildSectionHeader("Hedefler", Icons.track_changes_rounded, Colors.amber),
+        _buildSectionHeader(AppLocale.get('sec_goals'), Icons.track_changes_rounded, Colors.amber),
         Card(
           child: Column(
             children: [
-              _buildTile("Hedef Kilo", "${profile.targetWeightKg} ${profile.weightUnit}", Icons.flag_outlined, () {
-                _showEditDialog("Hedef Kilo (kg)", profile.targetWeightKg.toString(), (val) {
+              _buildTile(AppLocale.get('target_weight'), "${profile.targetWeightKg} ${profile.weightUnit}", Icons.flag_outlined, () {
+                _showEditDialog("${AppLocale.get('target_weight')} (${profile.weightUnit})", profile.targetWeightKg.toString(), (val) {
                   final v = double.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newTargetWeight: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Günlük Kalori Hedefi", "${profile.dailyCalorieGoal.toInt()} ${profile.energyUnit}", Icons.local_fire_department_outlined, () {
-                _showEditDialog("Günlük Kalori", profile.dailyCalorieGoal.toString(), (val) {
+              _buildTile(AppLocale.get('daily_calorie_goal'), "${profile.dailyCalorieGoal.toInt()} ${profile.energyUnit}", Icons.local_fire_department_outlined, () {
+                _showEditDialog(AppLocale.get('daily_calorie_goal'), profile.dailyCalorieGoal.toString(), (val) {
                   final v = double.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newDailyCalorie: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Günlük Su Hedefi", "${profile.dailyWaterGoalLiters} Litre", Icons.water_drop_outlined, () {
-                _showEditDialog("Su Hedefi (Litre)", profile.dailyWaterGoalLiters.toString(), (val) {
+              _buildTile(AppLocale.get('daily_water_goal'), "${profile.dailyWaterGoalLiters} L", Icons.water_drop_outlined, () {
+                _showEditDialog(AppLocale.get('daily_water_goal'), profile.dailyWaterGoalLiters.toString(), (val) {
                   final v = double.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newDailyWater: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Haftalık Antrenman Hedefi", "${profile.weeklyWorkoutDays} Gün", Icons.calendar_month_outlined, () {
-                _showEditDialog("Haftalık Antrenman (Gün)", profile.weeklyWorkoutDays.toString(), (val) {
+              _buildTile(AppLocale.get('weekly_workout_days'), "${profile.weeklyWorkoutDays}", Icons.calendar_month_outlined, () {
+                _showEditDialog(AppLocale.get('weekly_workout_days'), profile.weeklyWorkoutDays.toString(), (val) {
                   final v = int.tryParse(val);
                   if (v != null) setState(() => profile.updateProfile(newWeeklyWorkouts: v));
                 });
@@ -464,29 +467,29 @@ class _AccountScreenState extends State<AccountScreen> {
         const SizedBox(height: 20),
 
         // 3. BİLDİRİMLER
-        _buildSectionHeader("Bildirimler", Icons.notifications_rounded, AppTheme.accent),
+        _buildSectionHeader(AppLocale.get('sec_notifications'), Icons.notifications_rounded, AppTheme.accent),
         Card(
           child: Column(
             children: [
               SwitchListTile(
-                title: const Text("Antrenman Hatırlatıcıları"),
-                subtitle: const Text("Planlanan günlerde antrenmanı kaçırma", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                title: Text(AppLocale.get('notif_workout')),
+                subtitle: Text(profile.language == 'en' ? "Don't miss planned workout days" : "Planlanan günlerde antrenmanı kaçırma", style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                 value: profile.workoutReminders,
                 activeColor: AppTheme.accent,
                 onChanged: (val) => setState(() => profile.workoutReminders = val),
               ),
               _buildDivider(),
               SwitchListTile(
-                title: const Text("Öğün & Kalori Bildirimleri"),
-                subtitle: const Text("Öğün loglamayı hatırlatan bildirimler", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                title: Text(AppLocale.get('notif_meal')),
+                subtitle: Text(profile.language == 'en' ? "Reminders to log meals" : "Öğün loglamayı hatırlatan bildirimler", style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                 value: profile.mealReminders,
                 activeColor: AppTheme.accent,
                 onChanged: (val) => setState(() => profile.mealReminders = val),
               ),
               _buildDivider(),
               SwitchListTile(
-                title: const Text("Su Hatırlatıcı"),
-                subtitle: const Text("Düzenli su içme bildirimleri", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                title: Text(AppLocale.get('notif_water')),
+                subtitle: Text(profile.language == 'en' ? "Hydration & water reminders" : "Düzenli su içme bildirimleri", style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                 value: profile.waterReminders,
                 activeColor: AppTheme.accent,
                 onChanged: (val) => setState(() => profile.waterReminders = val),
@@ -497,13 +500,13 @@ class _AccountScreenState extends State<AccountScreen> {
 
         const SizedBox(height: 20),
 
-        // 4. ÖLÇÜ BİRİMLERİ
-        _buildSectionHeader("Ölçü Birimleri", Icons.straighten_rounded, AppTheme.fatColor),
+        // 4. ÖLÇÜ BİRİMLERİ & DİL
+        _buildSectionHeader(AppLocale.get('sec_units'), Icons.straighten_rounded, AppTheme.fatColor),
         Card(
           child: Column(
             children: [
               ListTile(
-                title: const Text("Ağırlık Birimi"),
+                title: Text(AppLocale.get('unit_weight')),
                 trailing: DropdownButton<String>(
                   value: profile.weightUnit,
                   dropdownColor: AppTheme.cardColor,
@@ -519,7 +522,7 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               _buildDivider(),
               ListTile(
-                title: const Text("Boy Birimi"),
+                title: Text(AppLocale.get('unit_height')),
                 trailing: DropdownButton<String>(
                   value: profile.heightUnit,
                   dropdownColor: AppTheme.cardColor,
@@ -535,7 +538,7 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               _buildDivider(),
               ListTile(
-                title: const Text("Enerji Birimi"),
+                title: Text(AppLocale.get('unit_energy')),
                 trailing: DropdownButton<String>(
                   value: profile.energyUnit,
                   dropdownColor: AppTheme.cardColor,
@@ -555,7 +558,7 @@ class _AccountScreenState extends State<AccountScreen> {
               _buildDivider(),
               ListTile(
                 leading: const Icon(Icons.language_rounded, color: AppTheme.accent),
-                title: const Text("Dil / Language"),
+                title: Text(AppLocale.get('language_setting')),
                 subtitle: Text(
                   profile.language == 'en' ? "English (English)" : "Türkçe (Turkish)",
                   style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
@@ -570,8 +573,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   ],
                   onChanged: (val) {
                     if (val != null) {
-                      setState(() => profile.language = val);
-                      profile.saveToPrefs();
+                      setState(() {
+                        profile.setLanguage(val);
+                      });
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(val == 'tr' ? "Dil Türkçe olarak güncellendi 🇹🇷" : "Language set to English 🇺🇸"),
@@ -590,7 +594,7 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 20),
 
           // 5. EGZERSİZLER & İNTERNET SENKRONİZASYONU (SADECE YÖNETİCİYE ÖZEL)
-          _buildSectionHeader("Egzersiz & Form Yönetimi (Yönetici)", Icons.admin_panel_settings_rounded, Colors.amber),
+          _buildSectionHeader(AppLocale.get('sec_exercise_mgmt'), Icons.admin_panel_settings_rounded, Colors.amber),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),

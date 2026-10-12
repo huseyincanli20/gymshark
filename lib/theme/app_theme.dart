@@ -24,7 +24,6 @@ class AppTheme {
         primary: primary,
         secondary: accent,
         surface: cardColor,
-        background: background,
       ),
       textTheme: GoogleFonts.interTextTheme(
         ThemeData.dark().textTheme,

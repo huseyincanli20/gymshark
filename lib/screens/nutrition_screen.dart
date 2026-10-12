@@ -3,6 +3,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../models/fitness_models.dart';
 import '../models/user_profile.dart';
+import '../utils/app_locale.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'barcode_scanner_screen.dart';
@@ -524,11 +525,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Beslenme & Makrolar"),
+        title: Text(AppLocale.get('nutrition_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: AppTheme.primary),
-            tooltip: "Barkod Okuyucu",
+            tooltip: AppLocale.get('barcode_scan'),
             onPressed: () async {
               final detectedFood = await Navigator.push<FoodItem>(
                 context,
@@ -582,11 +583,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildMacroRow("Protein", consumedProtein, targetProtein, AppTheme.proteinColor),
+                            _buildMacroRow(AppLocale.get('protein'), consumedProtein, targetProtein, AppTheme.proteinColor),
                             const SizedBox(height: 12),
-                            _buildMacroRow("Karb", consumedCarbs, targetCarbs, AppTheme.carbColor),
+                            _buildMacroRow(AppLocale.get('carbs'), consumedCarbs, targetCarbs, AppTheme.carbColor),
                             const SizedBox(height: 12),
-                            _buildMacroRow("Yağ", consumedFat, targetFat, AppTheme.fatColor),
+                            _buildMacroRow(AppLocale.get('fat'), consumedFat, targetFat, AppTheme.fatColor),
                           ],
                         )
                       ],
@@ -602,25 +603,27 @@ class _NutritionScreenState extends State<NutritionScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Bugünün Öğünleri",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  AppLocale.get('today_meals'),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
                     if (_todayMeals.isNotEmpty)
                       IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 20),
-                        tooltip: "Öğünleri Sıfırla",
+                        tooltip: AppLocale.get('reset_meals'),
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
                               backgroundColor: AppTheme.cardColor,
-                              title: const Text("Öğünleri Sıfırla"),
-                              content: const Text("Bugünkü eklenen tüm öğünleri sıfırlamak istediğinize emin misiniz?"),
+                              title: Text(AppLocale.get('reset_meals')),
+                              content: Text(AppLocale.isEnglish
+                                  ? "Are you sure you want to reset all meals logged today?"
+                                  : "Bugünkü eklenen tüm öğünleri sıfırlamak istediğinize emin misiniz?"),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                                TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocale.get('cancel'))),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                                   onPressed: () {
@@ -629,10 +632,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
                                     });
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Bugünkü öğünler sıfırlandı! 🔄")),
+                                      SnackBar(content: Text(AppLocale.isEnglish ? "Today's meals reset! 🔄" : "Bugünkü öğünler sıfırlandı! 🔄")),
                                     );
                                   },
-                                  child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                                  child: Text(AppLocale.get('reset'), style: const TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),
@@ -645,7 +648,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       icon: const Icon(Icons.restaurant_menu, size: 16),
-                      label: const Text("Kendi Besinin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: Text(AppLocale.get('custom_food'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       onPressed: () => _showCreateCustomFoodDialog(),
                     ),
                     TextButton.icon(
@@ -654,7 +657,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       icon: const Icon(Icons.add, size: 18),
-                      label: const Text("Besin Ekle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: Text(AppLocale.get('add_food'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       onPressed: _showAddFoodModal,
                     ),
                   ],
@@ -677,15 +680,15 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   children: [
                     Icon(Icons.no_meals_rounded, size: 54, color: Colors.white.withOpacity(0.25)),
                     const SizedBox(height: 12),
-                    const Text(
-                      "Bugün henüz öğün eklenmedi",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    Text(
+                      AppLocale.get('no_meals_yet'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      "Günlük hedefinize ulaşmak için yukarıdan besin ekleyin veya barkod okutun.",
+                    Text(
+                      AppLocale.get('no_meals_hint'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),

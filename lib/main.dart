@@ -7,6 +7,7 @@ import 'models/user_profile.dart';
 import 'theme/app_theme.dart';
 
 import 'services/exercise_repository.dart';
+import 'utils/app_locale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,22 +62,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 _currentIndex = index;
               });
             },
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard_rounded),
-                label: 'Ana Sayfa',
+                icon: const Icon(Icons.dashboard_rounded),
+                label: AppLocale.get('nav_home'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.fitness_center_rounded),
-                label: 'Antrenman',
+                icon: const Icon(Icons.fitness_center_rounded),
+                label: AppLocale.get('nav_workout'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.restaurant_rounded),
-                label: 'Beslenme',
+                icon: const Icon(Icons.restaurant_rounded),
+                label: AppLocale.get('nav_nutrition'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.insights_rounded),
-                label: 'İlerleme',
+                icon: const Icon(Icons.insights_rounded),
+                label: AppLocale.get('nav_progress'),
               ),
             ],
           ),

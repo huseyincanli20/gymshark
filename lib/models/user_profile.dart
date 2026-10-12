@@ -269,6 +269,15 @@ class UserProfile extends ChangeNotifier {
     saveToPrefs();
   }
 
+  /// Dil ayarını değiştirir ve tüm dinleyen ekranlara anında haber verir
+  void setLanguage(String newLang) {
+    if (language != newLang) {
+      language = newLang;
+      notifyListeners();
+      saveToPrefs();
+    }
+  }
+
   // --- HAFTALIK AKTİVİTE YÖNETİMİ ---
   void logWorkoutForToday() {
     final todayWeekday = DateTime.now().weekday; // 1: Pzt, 7: Paz

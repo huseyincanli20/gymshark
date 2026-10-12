@@ -4,6 +4,7 @@ import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
 import '../models/user_profile.dart';
 import '../services/exercise_repository.dart';
+import '../utils/app_locale.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
 
@@ -71,9 +72,9 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
           itemBuilder: (context, index) {
             final ex = exercises[index];
             return ListTile(
-              leading: CircleAvatar(
+              leading: const CircleAvatar(
                 backgroundColor: AppTheme.surfaceColor,
-                child: const Icon(Icons.fitness_center, color: AppTheme.primary),
+                child: Icon(Icons.fitness_center, color: AppTheme.primary),
               ),
               title: Text(ex.name, style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(ex.muscleGroup.name.toUpperCase(), style: const TextStyle(color: AppTheme.textSecondary)),
@@ -101,9 +102,12 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
         final exercises = ExerciseRepository.instance.exercises;
         return Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text("Değiştirmek İstediğiniz Egzersizi Seçin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                AppLocale.isEnglish ? "Select Exercise to Replace" : "Değiştirmek İstediğiniz Egzersizi Seçin",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ),
             const Divider(height: 1),
             Expanded(
@@ -112,9 +116,9 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                 itemBuilder: (context, index) {
                   final ex = exercises[index];
                   return ListTile(
-                    leading: CircleAvatar(
+                    leading: const CircleAvatar(
                       backgroundColor: AppTheme.surfaceColor,
-                      child: const Icon(Icons.fitness_center, color: AppTheme.primary),
+                      child: Icon(Icons.fitness_center, color: AppTheme.primary),
                     ),
                     title: Text(ex.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(ex.muscleGroup.name.toUpperCase(), style: const TextStyle(color: AppTheme.textSecondary)),
@@ -444,11 +448,11 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Canlı Antrenman Takibi"),
+        title: Text(AppLocale.get('workout_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.check_circle, color: AppTheme.accent, size: 28),
-            tooltip: "Antrenmanı Kaydet & Tamamla",
+            tooltip: AppLocale.get('finish_workout'),
             onPressed: () {
               // 1. Haftalık aktiviteye bugünü kaydet
               UserSession.current.logWorkoutForToday();
@@ -508,11 +512,11 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                 builder: (context) => AlertDialog(
                   backgroundColor: AppTheme.cardColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  title: const Row(
+                  title: Row(
                     children: [
-                      Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 28),
-                      SizedBox(width: 8),
-                      Text("Antrenman Tamamlandı! 🔥", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 28),
+                      const SizedBox(width: 8),
+                      Text(AppLocale.get('workout_completed'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                     ],
                   ),
                   content: Column(
@@ -527,7 +531,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                         ),
                         child: Column(
                           children: [
-                            const Text("Bu Antrenmanda Yakılan Kalori", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                            Text(AppLocale.get('workout_burned_cal'), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                             const SizedBox(height: 6),
                             Text(
                               "${burnedCalories.toInt()} kcal",
@@ -535,7 +539,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              "Toplam Hacim: ${totalVolumeKg.toInt()} kg • $totalCompletedSets Set",
+                              "${AppLocale.get('total_volume')}: ${totalVolumeKg.toInt()} kg • $totalCompletedSets ${AppLocale.isEnglish ? 'Sets' : 'Set'}",
                               style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                             ),
                           ],
@@ -555,7 +559,9 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  "Tebrikler! $newPrCount yeni kişisel rekor (PR) kırdınız!",
+                                  AppLocale.isEnglish
+                                      ? "Congratulations! You broke $newPrCount new personal record(s) (PR)!"
+                                      : "Tebrikler! $newPrCount yeni kişisel rekor (PR) kırdınız!",
                                   style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                               ),
@@ -571,7 +577,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("Harika! Ana Sayfaya Dön", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text(AppLocale.get('back_to_home'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -595,7 +601,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                       const Icon(Icons.timer, color: AppTheme.accent),
                       const SizedBox(width: 8),
                       Text(
-                        "Dinlenme: $_restSecondsRemaining sn",
+                        "${AppLocale.get('rest_seconds')}$_restSecondsRemaining ${AppLocale.get('sec_short')}",
                         style: const TextStyle(
                           color: AppTheme.accent,
                           fontWeight: FontWeight.bold,
@@ -609,7 +615,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                       _restTimer?.cancel();
                       setState(() => _isResting = false);
                     },
-                    child: const Text("Atla", style: TextStyle(color: Colors.white)),
+                    child: Text(AppLocale.get('skip'), style: const TextStyle(color: Colors.white)),
                   )
                 ],
               ),
@@ -716,44 +722,44 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                                 }
                               },
                               itemBuilder: (context) => [
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'change_image',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.image_outlined, color: AppTheme.accent, size: 20),
-                                      SizedBox(width: 10),
-                                      Text("Görseli Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
+                                      const Icon(Icons.image_outlined, color: AppTheme.accent, size: 20),
+                                      const SizedBox(width: 10),
+                                      Text(AppLocale.get('change_image'), style: const TextStyle(fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'edit_sets',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 20),
-                                      SizedBox(width: 10),
-                                      Text("Ağırlık & Set Düzenle", style: TextStyle(fontWeight: FontWeight.w600)),
+                                      const Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 20),
+                                      const SizedBox(width: 10),
+                                      Text(AppLocale.get('edit_sets'), style: const TextStyle(fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'replace',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.swap_horiz_rounded, color: Colors.amber, size: 20),
-                                      SizedBox(width: 10),
-                                      Text("Egzersizi Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
+                                      const Icon(Icons.swap_horiz_rounded, color: Colors.amber, size: 20),
+                                      const SizedBox(width: 10),
+                                      Text(AppLocale.get('replace_exercise'), style: const TextStyle(fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ),
                                 const PopupMenuDivider(),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'delete',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
-                                      SizedBox(width: 10),
-                                      Text("Egzersizi Kaldır", style: TextStyle(color: Colors.redAccent)),
+                                      const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                                      const SizedBox(width: 10),
+                                      Text(AppLocale.get('remove_exercise'), style: const TextStyle(color: Colors.redAccent)),
                                     ],
                                   ),
                                 ),
@@ -764,10 +770,10 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const SizedBox(width: 35, child: Text("SET", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12))),
+                            SizedBox(width: 35, child: Text(AppLocale.get('set'), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12))),
                             Expanded(child: Center(child: Text(UserSession.current.weightUnit.toUpperCase(), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
-                            const Expanded(child: Center(child: Text("TEKRAR", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
-                            const SizedBox(width: 48, child: Center(child: Text("BİTTİ", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                            Expanded(child: Center(child: Text(AppLocale.get('reps'), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                            SizedBox(width: 48, child: Center(child: Text(AppLocale.get('done'), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
                           ],
                         ),
                         const Divider(color: AppTheme.surfaceColor),
@@ -837,7 +843,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                         const SizedBox(height: 8),
                         TextButton.icon(
                           icon: const Icon(Icons.add, color: AppTheme.primary, size: 18),
-                          label: const Text("Set Ekle", style: TextStyle(color: AppTheme.primary)),
+                          label: Text(AppLocale.get('add_set'), style: const TextStyle(color: AppTheme.primary)),
                           onPressed: () {
                             setState(() {
                               final lastWeight = log.sets.isNotEmpty ? log.sets.last.weight : 20.0;
@@ -865,7 +871,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(Icons.add_circle, color: AppTheme.primary),
-                label: const Text("Egzersiz Ekle", style: TextStyle(color: Colors.white, fontSize: 16)),
+                label: Text(AppLocale.get('add_exercise'), style: const TextStyle(color: Colors.white, fontSize: 16)),
                 onPressed: _openExerciseSelector,
               ),
             ),
