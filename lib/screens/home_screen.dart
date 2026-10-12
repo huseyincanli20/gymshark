@@ -171,10 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.monitor_heart_rounded, color: Colors.orangeAccent, size: 18),
+                    Icon(Icons.fitness_center, color: Colors.orangeAccent, size: 18),
                     SizedBox(width: 6),
                     Text(
-                      "Günlük Aktivite & Sağlık",
+                      "Apple Fitness & Aktivite",
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ],
@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : const Icon(Icons.sync_rounded, color: AppTheme.accent, size: 14),
                         const SizedBox(width: 4),
                         const Text(
-                          "Sağlık Eşitle",
+                          "Fitness Eşitle",
                           style: TextStyle(
                             color: AppTheme.accent,
                             fontSize: 11,
@@ -218,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Row(
               children: [
-                // 1. Günlük Yakılan Kalori Kartı
+                // 1. Günlük Yakılan Kalori Kartı (Apple Fitness Hareket / Move Kalorisi)
                 Expanded(
                   child: InkWell(
                     onTap: _triggerManualHealthSync,
@@ -246,11 +246,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.favorite, size: 12, color: Colors.redAccent.withOpacity(0.8)),
-                                  const SizedBox(width: 3),
+                                  Icon(Icons.apple, size: 14, color: Colors.white.withOpacity(0.7)),
+                                  const SizedBox(width: 2),
                                   Text(
-                                    "Apple/Health",
-                                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10),
+                                    "Fitness Move",
+                                    style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -280,8 +280,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 8),
                           Text(
                             profile.todayBurnedCalories > 0
-                                ? "Canlı Sağlık Verisi 🔥"
-                                : "Veri bekleniyor",
+                                ? "Fitness Halkası 🔥"
+                                : "Aktivite bekleniyor",
                             style: const TextStyle(fontSize: 10, color: AppTheme.accent),
                           ),
                         ],

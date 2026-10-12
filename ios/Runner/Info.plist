@@ -50,8 +50,8 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil fotoğrafı seçebilmeniz için fotoğraf galerisine erişim gereklidir.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Günlük adım sayınızı ve yakılan kalori değerlerinizi otomatik olarak takip etmek için Apple Sağlık (HealthKit) verilerine erişim gereklidir.</string>
+	<string>Apple Fitness uygulamanızdaki günlük Hareket (Move/Yakılan Kalori) ve Adım verilerinizi anlık olarak uygulamaya aktarmak için izin gereklidir.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Uygulamada tamamladığınız antrenman ve kalori kayıtlarınızı Apple Sağlık ile senkronize etmek için sağlık verisi yazma izni gereklidir.</string>
+	<string>GymTrack antrenmanlarınızı ve yaktığınız kalorileri Apple Fitness ve Sağlık uygulamanıza kaydetmek için izin gereklidir.</string>
 </dict>
 </plist>
