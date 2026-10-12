@@ -28,165 +28,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
     super.dispose();
   }
 
-  void _showAddWeightDialog() {
-    final controller = TextEditingController(text: UserSession.current.weightKg.toString());
-    final noteController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.monitor_weight_outlined, color: AppTheme.accent),
-            SizedBox(width: 8),
-            Text("Yeni Kilo Kaydı Ekle", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: "Kilo (${UserSession.current.weightUnit})",
-                suffixText: UserSession.current.weightUnit,
-                filled: true,
-                fillColor: AppTheme.surfaceColor,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: noteController,
-              decoration: InputDecoration(
-                labelText: "Not (Örn: Sabah aç karnına)",
-                filled: true,
-                fillColor: AppTheme.surfaceColor,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("İptal"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            onPressed: () {
-              final w = double.tryParse(controller.text.replaceAll(',', '.'));
-              if (w != null && w > 0) {
-                UserSession.current.updateProfile(newWeight: w);
-                UserSession.current.addWeightLog(w, note: noteController.text.trim());
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Kilo kaydı ($w ${UserSession.current.weightUnit}) grafiğe eklendi! 📉"),
-                    backgroundColor: AppTheme.accent,
-                  ),
-                );
-              }
-            },
-            child: const Text("Kaydet", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddPRDialog() {
-    final nameCtrl = TextEditingController();
-    final weightCtrl = TextEditingController();
-    final repsCtrl = TextEditingController(text: "1");
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.emoji_events, color: Colors.amber),
-            SizedBox(width: 8),
-            Text("Yeni Rekor (PR) Ekle", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: InputDecoration(
-                labelText: "Egzersiz Adı",
-                hintText: "Örn: Barbell Bench Press",
-                filled: true,
-                fillColor: AppTheme.surfaceColor,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: weightCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: "Ağırlık (${UserSession.current.weightUnit})",
-                      filled: true,
-                      fillColor: AppTheme.surfaceColor,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: repsCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Tekrar",
-                      filled: true,
-                      fillColor: AppTheme.surfaceColor,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("İptal"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            onPressed: () {
-              final name = nameCtrl.text.trim();
-              final w = double.tryParse(weightCtrl.text.replaceAll(',', '.')) ?? 0;
-              final r = int.tryParse(repsCtrl.text) ?? 1;
-              if (name.isNotEmpty && w > 0) {
-                UserSession.current.addOrUpdatePR(exerciseName: name, weight: w, reps: r);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("$name PR kaydı eklendi! 🏆"), backgroundColor: AppTheme.accent),
-                );
-              }
-            },
-            child: const Text("Ekle", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final profile = UserSession.current;
@@ -288,42 +129,33 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh, size: 20, color: AppTheme.textSecondary),
-                      tooltip: "Grafiği Sıfırla",
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: AppTheme.cardColor,
-                            title: const Text("Kilo Grafiğini Sıfırla"),
-                            content: const Text("Kilo geçmişi sıfırlanıp sadece güncel kilonuz korunacaktır. Emin misiniz?"),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                onPressed: () {
-                                  profile.resetWeightHistory();
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Kilo grafiği sıfırlandı! 🔄")),
-                                  );
-                                },
-                                child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle, size: 22, color: AppTheme.accent),
-                      tooltip: "Yeni Kilo Kaydı Ekle",
-                      onPressed: _showAddWeightDialog,
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20, color: AppTheme.textSecondary),
+                  tooltip: "Grafiği Sıfırla",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: AppTheme.cardColor,
+                        title: const Text("Kilo Grafiğini Sıfırla"),
+                        content: const Text("Kilo geçmişi sıfırlanıp sadece güncel kilonuz korunacaktır. Emin misiniz?"),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            onPressed: () {
+                              profile.resetWeightHistory();
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Kilo grafiği sıfırlandı! 🔄")),
+                              );
+                            },
+                            child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                          )
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -427,45 +259,36 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    if (profile.personalRecords.isNotEmpty)
-                      TextButton.icon(
-                        style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                        icon: const Icon(Icons.delete_sweep, size: 18),
-                        label: const Text("Tümünü Sil", style: TextStyle(fontSize: 12)),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              backgroundColor: AppTheme.cardColor,
-                              title: const Text("Rekorları Sil"),
-                              content: const Text("Tüm kişisel rekorlarınızı silmek istediğinize emin misiniz?"),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                                  onPressed: () {
-                                    profile.clearAllPRs();
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Tüm rekorlar temizlendi! 🗑️")),
-                                    );
-                                  },
-                                  child: const Text("Sil", style: TextStyle(color: Colors.white)),
-                                ),
-                              ],
+                if (profile.personalRecords.isNotEmpty)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                    icon: const Icon(Icons.delete_sweep, size: 18),
+                    label: const Text("Tümünü Sil", style: TextStyle(fontSize: 12)),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: AppTheme.cardColor,
+                          title: const Text("Rekorları Sil"),
+                          content: const Text("Tüm kişisel rekorlarınızı silmek istediğinize emin misiniz?"),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                              onPressed: () {
+                                profile.clearAllPRs();
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Tüm rekorlar temizlendi! 🗑️")),
+                                );
+                              },
+                              child: const Text("Sil", style: TextStyle(color: Colors.white)),
                             ),
-                          );
-                        },
-                      ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle, size: 22, color: AppTheme.accent),
-                      tooltip: "Yeni Rekor Ekle",
-                      onPressed: _showAddPRDialog,
-                    ),
-                  ],
-                ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             const SizedBox(height: 10),
