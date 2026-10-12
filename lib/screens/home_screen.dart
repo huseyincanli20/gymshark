@@ -131,6 +131,143 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            const SizedBox(height: 18),
+
+            // GÜNLÜK YAKILAN KALORİ & GÜNLÜK ADIM SAYAR PENCERESİ
+            Row(
+              children: [
+                // 1. Günlük Yakılan Kalori Kartı
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.orangeAccent.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 20),
+                            ),
+                            Text(
+                              "Bugün",
+                              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Yakılan Kalori",
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              "${profile.todayBurnedCalories.toInt()}",
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              "kcal",
+                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          profile.todayBurnedCalories > 0
+                              ? "Antrenman & Adım 🔥"
+                              : "Antrenman bekleniyor",
+                          style: const TextStyle(fontSize: 10, color: AppTheme.accent),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // 2. Günlük Adım Sayar Kartı
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      _showEditStepsDialog();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accent.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.directions_walk_rounded, color: AppTheme.accent, size: 20),
+                              ),
+                              const Icon(Icons.edit, size: 14, color: AppTheme.textSecondary),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "Günlük Adım",
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                "${profile.todaySteps}",
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.accent),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "/ ${profile.stepGoal}",
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: (profile.todaySteps / profile.stepGoal).clamp(0.0, 1.0),
+                              backgroundColor: AppTheme.surfaceColor,
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accent),
+                              minHeight: 5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 24),
 
             // Haftalık Streak & Hedef
@@ -346,6 +483,103 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditStepsDialog() {
+    final profile = UserSession.current;
+    final controller = TextEditingController(text: profile.todaySteps > 0 ? profile.todaySteps.toString() : "");
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.directions_walk_rounded, color: AppTheme.accent),
+            SizedBox(width: 8),
+            Text("Günlük Adım Sayısı", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Bugünkü adım sayınızı girin veya hızlı butonları kullanın. Her adım harcanan kaloriyi otomatik hesaplar.",
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: "Toplam Adım",
+                suffixText: "adım",
+                filled: true,
+                fillColor: AppTheme.surfaceColor,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text("+1.000"),
+                  onPressed: () {
+                    final curr = int.tryParse(controller.text) ?? 0;
+                    controller.text = (curr + 1000).toString();
+                  },
+                ),
+                ActionChip(
+                  label: const Text("+3.000"),
+                  onPressed: () {
+                    final curr = int.tryParse(controller.text) ?? 0;
+                    controller.text = (curr + 3000).toString();
+                  },
+                ),
+                ActionChip(
+                  label: const Text("+5.000"),
+                  onPressed: () {
+                    final curr = int.tryParse(controller.text) ?? 0;
+                    controller.text = (curr + 5000).toString();
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              profile.resetDailyBurnedAndSteps();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Günlük adım ve yakılan kalori sıfırlandı. 🔄")),
+              );
+            },
+            child: const Text("Sıfırla", style: TextStyle(color: Colors.redAccent)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+            onPressed: () {
+              final steps = int.tryParse(controller.text) ?? 0;
+              profile.setSteps(steps);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Adım sayısı ($steps) ve yakılan kalori güncellendi! 🚶‍♂️🔥"),
+                  backgroundColor: AppTheme.accent,
+                ),
+              );
+            },
+            child: const Text("Kaydet", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

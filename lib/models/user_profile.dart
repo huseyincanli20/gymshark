@@ -69,6 +69,11 @@ class UserProfile extends ChangeNotifier {
   String? photoUrl;
   String? customPhotoBase64;
 
+  // Günlük Yakılan Kalori ve Adım Sayar
+  double todayBurnedCalories = 0.0;
+  int todaySteps = 0;
+  int stepGoal = 8000;
+
   // Haftalık Tamamlanan Günler: 1: Pzt, 2: Sal, 3: Çar, 4: Per, 5: Cum, 6: Cmt, 7: Paz
   Set<int> completedDaysThisWeek = {};
 
@@ -272,6 +277,39 @@ class UserProfile extends ChangeNotifier {
     saveToPrefs();
   }
 
+  // --- GÜNLÜK YAKILAN KALORİ & ADIM YÖNETİMİ ---
+  void addBurnedCalories(double calories) {
+    todayBurnedCalories += calories;
+    notifyListeners();
+    saveToPrefs();
+  }
+
+  void addSteps(int steps) {
+    todaySteps += steps;
+    // Her 1000 adım ortalama 40-45 kcal yakar
+    final stepCalories = (steps * 0.042);
+    todayBurnedCalories += stepCalories;
+    notifyListeners();
+    saveToPrefs();
+  }
+
+  void setSteps(int steps) {
+    final diff = steps - todaySteps;
+    todaySteps = steps;
+    if (diff > 0) {
+      todayBurnedCalories += (diff * 0.042);
+    }
+    notifyListeners();
+    saveToPrefs();
+  }
+
+  void resetDailyBurnedAndSteps() {
+    todayBurnedCalories = 0.0;
+    todaySteps = 0;
+    notifyListeners();
+    saveToPrefs();
+  }
+
   // --- KİLO GEÇMİŞİ VE GRAFİK YÖNETİMİ ---
   void addWeightLog(double weight, {String note = ''}) {
     weightHistory.add(WeightLogEntry(date: DateTime.now(), weight: weight, note: note));
@@ -354,6 +392,9 @@ class UserProfile extends ChangeNotifier {
       await prefs.setDouble('dailyCalorieGoal', dailyCalorieGoal);
       await prefs.setDouble('dailyWaterGoalLiters', dailyWaterGoalLiters);
       await prefs.setInt('weeklyWorkoutDays', weeklyWorkoutDays);
+      await prefs.setDouble('todayBurnedCalories', todayBurnedCalories);
+      await prefs.setInt('todaySteps', todaySteps);
+      await prefs.setInt('stepGoal', stepGoal);
       await prefs.setStringList(
         'completedDaysThisWeek',
         completedDaysThisWeek.map((e) => e.toString()).toList(),
@@ -380,6 +421,9 @@ class UserProfile extends ChangeNotifier {
       dailyCalorieGoal = prefs.getDouble('dailyCalorieGoal') ?? dailyCalorieGoal;
       dailyWaterGoalLiters = prefs.getDouble('dailyWaterGoalLiters') ?? dailyWaterGoalLiters;
       weeklyWorkoutDays = prefs.getInt('weeklyWorkoutDays') ?? weeklyWorkoutDays;
+      todayBurnedCalories = prefs.getDouble('todayBurnedCalories') ?? todayBurnedCalories;
+      todaySteps = prefs.getInt('todaySteps') ?? todaySteps;
+      stepGoal = prefs.getInt('stepGoal') ?? stepGoal;
 
       final daysList = prefs.getStringList('completedDaysThisWeek');
       if (daysList != null) {

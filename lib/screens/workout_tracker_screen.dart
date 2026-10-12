@@ -477,17 +477,101 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                 }
               }
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(newPrCount > 0
-                      ? "Harika! Antrenman haftalık aktiviteye işlendi ve $newPrCount yeni PR kaydedildi! 🏆🔥"
-                      : "Antrenman başarıyla tamamlandı ve haftalık aktiviteye kaydedildi! 💪"),
-                  backgroundColor: AppTheme.accent,
-                  action: SnackBarAction(
-                    label: "Tamam",
-                    textColor: Colors.black,
-                    onPressed: () {},
+              // 3. Antrenmanda yakılan kaloriyi hesapla
+              // Formül: (Kaldırılan toplam tonaj (kg) * 0.015) + (Tamamlanan set sayısı * 18 kcal) + (Kilo bazı metabolik harcama)
+              double totalVolumeKg = 0.0;
+              int totalCompletedSets = 0;
+              for (final log in workoutManager.activeWorkout) {
+                for (final s in log.sets) {
+                  if (s.isCompleted) {
+                    totalVolumeKg += (s.weight * s.reps);
+                    totalCompletedSets++;
+                  }
+                }
+              }
+
+              // Set yoksa bile antrenman başlangıç taban harcaması ~120 kcal
+              double burnedCalories = 120.0;
+              if (totalCompletedSets > 0) {
+                final weightMultiplier = UserSession.current.weightKg / 70.0;
+                burnedCalories = ((totalVolumeKg * 0.014) + (totalCompletedSets * 14.0)) * weightMultiplier;
+              }
+              burnedCalories = double.parse((burnedCalories.clamp(80.0, 1500.0)).toStringAsFixed(0));
+
+              // Kullanıcının günlük yakılan kalorisine ekle
+              UserSession.current.addBurnedCalories(burnedCalories);
+
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: AppTheme.cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: const Row(
+                    children: [
+                      Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 28),
+                      SizedBox(width: 8),
+                      Text("Antrenman Tamamlandı! 🔥", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
                   ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text("Bu Antrenmanda Yakılan Kalori", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                            const SizedBox(height: 6),
+                            Text(
+                              "${burnedCalories.toInt()} kcal",
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Toplam Hacim: ${totalVolumeKg.toInt()} kg • $totalCompletedSets Set",
+                              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      if (newPrCount > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.emoji_events, color: AppTheme.accent, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Tebrikler! $newPrCount yeni kişisel rekor (PR) kırdınız!",
+                                  style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  actions: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Harika! Ana Sayfaya Dön", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
               );
             },
