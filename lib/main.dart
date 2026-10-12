@@ -3,6 +3,7 @@ import 'screens/home_screen.dart';
 import 'screens/workout_tracker_screen.dart';
 import 'screens/nutrition_screen.dart';
 import 'screens/progress_screen.dart';
+import 'models/user_profile.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -33,46 +34,49 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    WorkoutTrackerScreen(),
-    NutritionScreen(),
-    ProgressScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_rounded),
-            label: 'Ana Sayfa',
+    return ListenableBuilder(
+      listenable: UserSession.current,
+      builder: (context, child) {
+        return Scaffold(
+          body: IndexedStack(
+            index: _currentIndex,
+            children: const [
+              HomeScreen(),
+              WorkoutTrackerScreen(),
+              NutritionScreen(),
+              ProgressScreen(),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center_rounded),
-            label: 'Antrenman',
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard_rounded),
+                label: 'Ana Sayfa',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fitness_center_rounded),
+                label: 'Antrenman',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_rounded),
+                label: 'Beslenme',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.insights_rounded),
+                label: 'İlerleme',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_rounded),
-            label: 'Beslenme',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights_rounded),
-            label: 'İlerleme',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

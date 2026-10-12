@@ -14,6 +14,22 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    UserSession.current.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    UserSession.current.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
   final List<LoggedMeal> _todayMeals = [
     LoggedMeal(food: MockData.foods[1], amountGrams: 80), // Yulaf
     LoggedMeal(food: MockData.foods[2], amountGrams: 150), // Yumurta

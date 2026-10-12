@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
+import '../models/user_profile.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
@@ -23,9 +24,14 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
   void initState() {
     super.initState();
     workoutManager.addListener(_onWorkoutChanged);
+    UserSession.current.addListener(_onProfileChanged);
   }
 
   void _onWorkoutChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onProfileChanged() {
     if (mounted) setState(() {});
   }
 
@@ -427,6 +433,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
   @override
   void dispose() {
     workoutManager.removeListener(_onWorkoutChanged);
+    UserSession.current.removeListener(_onProfileChanged);
     _restTimer?.cancel();
     super.dispose();
   }
@@ -629,12 +636,12 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Row(
+                        Row(
                           children: [
-                            SizedBox(width: 35, child: Text("SET", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12))),
-                            Expanded(child: Center(child: Text("KG", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
-                            Expanded(child: Center(child: Text("TEKRAR", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
-                            SizedBox(width: 48, child: Center(child: Text("BİTTİ", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                            const SizedBox(width: 35, child: Text("SET", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12))),
+                            Expanded(child: Center(child: Text(UserSession.current.weightUnit.toUpperCase(), style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                            const Expanded(child: Center(child: Text("TEKRAR", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                            const SizedBox(width: 48, child: Center(child: Text("BİTTİ", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
                           ],
                         ),
                         const Divider(color: AppTheme.surfaceColor),
@@ -658,7 +665,7 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        "${s.weight} kg",
+                                        "${s.weight} ${UserSession.current.weightUnit}",
                                         style: const TextStyle(fontWeight: FontWeight.w600),
                                       ),
                                     ),
