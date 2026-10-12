@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../data/mock_data.dart';
 import '../models/user_profile.dart';
+import '../models/fitness_models.dart';
+import '../models/workout_manager.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 
@@ -141,11 +143,32 @@ class HomeScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final ex = MockData.exercises[index];
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      final result = await Navigator.push<Exercise>(
                         context,
                         MaterialPageRoute(builder: (context) => ExerciseDetailScreen(exercise: ex)),
                       );
+                      if (result != null) {
+                        WorkoutManager.instance.addExercise(result);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("${result.name} canlı antrenman takibine eklendi! 💪"),
+                              backgroundColor: AppTheme.accent,
+                              action: SnackBarAction(
+                                label: "Antrenmana Git",
+                                textColor: Colors.black,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const WorkoutTrackerScreen()),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      }
                     },
                     child: Container(
                       width: 140,

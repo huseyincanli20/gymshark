@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/fitness_models.dart';
+import '../models/workout_manager.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
 import 'exercise_detail_screen.dart';
@@ -13,7 +14,7 @@ class WorkoutTrackerScreen extends StatefulWidget {
 }
 
 class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
-  final List<ActiveExerciseLog> _currentWorkout = [];
+  final workoutManager = WorkoutManager.instance;
   Timer? _restTimer;
   int _restSecondsRemaining = 0;
   bool _isResting = false;
@@ -21,19 +22,11 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
   @override
   void initState() {
     super.initState();
-    // Örnek başlangıç egzersizi
-    if (MockData.exercises.isNotEmpty) {
-      _currentWorkout.add(
-        ActiveExerciseLog(
-          exercise: MockData.exercises[0],
-          sets: [
-            WorkoutSet(weight: 60, reps: 10, isCompleted: true),
-            WorkoutSet(weight: 70, reps: 8, isCompleted: true),
-            WorkoutSet(weight: 80, reps: 6, isCompleted: false),
-          ],
-        ),
-      );
-    }
+    workoutManager.addListener(_onWorkoutChanged);
+  }
+
+  void _onWorkoutChanged() {
+    if (mounted) setState(() {});
   }
 
   void _startRestTimer(int seconds) {
@@ -86,21 +79,13 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
     );
 
     if (selected != null) {
-      setState(() {
-        _currentWorkout.add(
-          ActiveExerciseLog(
-            exercise: selected,
-            sets: [
-              WorkoutSet(weight: 20, reps: 10),
-            ],
-          ),
-        );
-      });
+      workoutManager.addExercise(selected);
     }
   }
 
   @override
   void dispose() {
+    workoutManager.removeListener(_onWorkoutChanged);
     _restTimer?.cancel();
     super.dispose();
   }
@@ -159,9 +144,9 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _currentWorkout.length,
+              itemCount: workoutManager.activeWorkout.length,
               itemBuilder: (context, exIndex) {
-                final log = _currentWorkout[exIndex];
+                final log = workoutManager.activeWorkout[exIndex];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Padding(
