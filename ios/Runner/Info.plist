@@ -53,5 +53,7 @@
 	<string>Apple Fitness uygulamanızdaki günlük Hareket (Move/Yakılan Kalori) ve Adım verilerinizi anlık olarak uygulamaya aktarmak için izin gereklidir.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>GymTrack antrenmanlarınızı ve yaktığınız kalorileri Apple Fitness ve Sağlık uygulamanıza kaydetmek için izin gereklidir.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Günlük adım sayınızı ve yakılan kaloriyi telefonunuzun hareket ve fitness sensörlerinden (Apple CoreMotion/Fitness) canlı olarak takip edebilmek için hareket izni gereklidir.</string>
 </dict>
 </plist>
