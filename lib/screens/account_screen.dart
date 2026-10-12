@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
 import '../utils/device_image_picker.dart';
+import '../services/cloud_auth_service.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -19,21 +20,52 @@ class _AccountScreenState extends State<AccountScreen> {
 
   final profile = UserSession.current;
 
-  void _handleAuthSubmit() {
+  Future<void> _handleAuthSubmit() async {
+    final email = _emailController.text.trim();
+    final name = _nameController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lütfen tüm alanları doldurun."), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
+
+    // Kayıt modunda verileri özel bulut sağlayıcısına kaydet
+    if (_isRegisterMode) {
+      await CloudAuthService.instance.registerUserToCloud(
+        name: name.isNotEmpty ? name : 'Sporcu',
+        email: email,
+        password: password,
+        initialProfile: {
+          'heightCm': profile.heightCm,
+          'weightKg': profile.weightKg,
+          'gender': profile.gender,
+          'age': profile.age,
+          'targetWeightKg': profile.targetWeightKg,
+        },
+      );
+    }
+
     setState(() {
       profile.isLoggedIn = true;
-      profile.email = _emailController.text.trim();
-      if (_isRegisterMode && _nameController.text.trim().isNotEmpty) {
-        profile.name = _nameController.text.trim();
+      profile.email = email;
+      if (_isRegisterMode && name.isNotEmpty) {
+        profile.name = name;
       }
     });
     profile.saveToPrefs();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isRegisterMode ? "Hesabınız başarıyla oluşturuldu! Hoş geldiniz 🎉" : "Giriş başarılı! Hoş geldiniz 🎉"),
-        backgroundColor: AppTheme.accent,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isRegisterMode 
+              ? "Hesabınız özel buluta kaydedildi ve aktif edildi! ☁️🎉" 
+              : "Giriş başarılı! Hoş geldiniz 🎉"),
+          backgroundColor: AppTheme.accent,
+        ),
+      );
+    }
   }
 
   void _handleLogout() {

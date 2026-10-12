@@ -31,12 +31,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     super.dispose();
   }
 
-  final List<LoggedMeal> _todayMeals = [
-    LoggedMeal(food: MockData.foods[1], amountGrams: 80), // Yulaf
-    LoggedMeal(food: MockData.foods[2], amountGrams: 150), // Yumurta
-    LoggedMeal(food: MockData.foods[0], amountGrams: 200), // Tavuk
-    LoggedMeal(food: MockData.foods[3], amountGrams: 200), // Pilav
-  ];
+  final List<LoggedMeal> _todayMeals = [];
 
   double get targetCalories => UserSession.current.dailyCalorieGoal;
   // Sağlık ayrıntılarına (boy, kilo, yaş, cinsiyet) göre otomatik hesaplanan dinamik makrolar:
@@ -603,7 +598,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
 
             const SizedBox(height: 20),
 
-            // Bugün Yenilenler Başlığı
+            // Bugün Yenilenler Başlığı & Aksiyonları
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -613,10 +608,41 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 ),
                 Row(
                   children: [
+                    if (_todayMeals.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 20),
+                        tooltip: "Öğünleri Sıfırla",
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: AppTheme.cardColor,
+                              title: const Text("Öğünleri Sıfırla"),
+                              content: const Text("Bugünkü eklenen tüm öğünleri sıfırlamak istediğinize emin misiniz?"),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                  onPressed: () {
+                                    setState(() {
+                                      _todayMeals.clear();
+                                    });
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Bugünkü öğünler sıfırlandı! 🔄")),
+                                    );
+                                  },
+                                  child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.accent,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       icon: const Icon(Icons.restaurant_menu, size: 16),
                       label: const Text("Kendi Besinin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -625,7 +651,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
                       ),
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text("Besin Ekle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -638,10 +664,37 @@ class _NutritionScreenState extends State<NutritionScreen> {
 
             const SizedBox(height: 8),
 
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _todayMeals.length,
+            if (_todayMeals.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.no_meals_rounded, size: 54, color: Colors.white.withOpacity(0.25)),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Bugün henüz öğün eklenmedi",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Günlük hedefinize ulaşmak için yukarıdan besin ekleyin veya barkod okutun.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _todayMeals.length,
               itemBuilder: (context, index) {
                 final meal = _todayMeals[index];
                 return Card(
