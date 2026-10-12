@@ -6,6 +6,7 @@ import '../models/fitness_models.dart';
 import '../models/workout_manager.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
+import 'all_exercises_screen.dart';
 
 import 'account_screen.dart';
 
@@ -354,7 +355,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
+                    );
+                  },
                   child: const Text("Tümü", style: TextStyle(color: AppTheme.primary)),
                 ),
               ],
