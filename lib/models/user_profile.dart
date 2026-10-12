@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WeightLogEntry {
   final DateTime date;
@@ -254,6 +255,7 @@ class UserProfile extends ChangeNotifier {
     }
 
     notifyListeners();
+    saveToPrefs();
   }
 
   // --- HAFTALIK AKTİVİTE YÖNETİMİ ---
@@ -261,11 +263,13 @@ class UserProfile extends ChangeNotifier {
     final todayWeekday = DateTime.now().weekday; // 1: Pzt, 7: Paz
     completedDaysThisWeek.add(todayWeekday);
     notifyListeners();
+    saveToPrefs();
   }
 
   void resetWeeklyActivity() {
     completedDaysThisWeek.clear();
     notifyListeners();
+    saveToPrefs();
   }
 
   // --- KİLO GEÇMİŞİ VE GRAFİK YÖNETİMİ ---
@@ -328,6 +332,67 @@ class UserProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- KALICI VERİ SAKLAMA (SharedPreferences) ---
+  Future<void> saveToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', isLoggedIn);
+      await prefs.setString('name', name);
+      await prefs.setString('email', email);
+      if (photoUrl != null) await prefs.setString('photoUrl', photoUrl!);
+      if (customPhotoBase64 != null) {
+        await prefs.setString('customPhotoBase64', customPhotoBase64!);
+      } else {
+        await prefs.remove('customPhotoBase64');
+      }
+      await prefs.setDouble('heightCm', heightCm);
+      await prefs.setDouble('weightKg', weightKg);
+      await prefs.setInt('age', age);
+      await prefs.setString('gender', gender);
+      await prefs.setString('bloodGroup', bloodGroup);
+      await prefs.setDouble('targetWeightKg', targetWeightKg);
+      await prefs.setDouble('dailyCalorieGoal', dailyCalorieGoal);
+      await prefs.setDouble('dailyWaterGoalLiters', dailyWaterGoalLiters);
+      await prefs.setInt('weeklyWorkoutDays', weeklyWorkoutDays);
+      await prefs.setStringList(
+        'completedDaysThisWeek',
+        completedDaysThisWeek.map((e) => e.toString()).toList(),
+      );
+    } catch (_) {
+      // Hata durumunda sessizce devam et
+    }
+  }
+
+  Future<void> loadFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      name = prefs.getString('name') ?? name;
+      email = prefs.getString('email') ?? email;
+      photoUrl = prefs.getString('photoUrl') ?? photoUrl;
+      customPhotoBase64 = prefs.getString('customPhotoBase64') ?? customPhotoBase64;
+      heightCm = prefs.getDouble('heightCm') ?? heightCm;
+      weightKg = prefs.getDouble('weightKg') ?? weightKg;
+      age = prefs.getInt('age') ?? age;
+      gender = prefs.getString('gender') ?? gender;
+      bloodGroup = prefs.getString('bloodGroup') ?? bloodGroup;
+      targetWeightKg = prefs.getDouble('targetWeightKg') ?? targetWeightKg;
+      dailyCalorieGoal = prefs.getDouble('dailyCalorieGoal') ?? dailyCalorieGoal;
+      dailyWaterGoalLiters = prefs.getDouble('dailyWaterGoalLiters') ?? dailyWaterGoalLiters;
+      weeklyWorkoutDays = prefs.getInt('weeklyWorkoutDays') ?? weeklyWorkoutDays;
+
+      final daysList = prefs.getStringList('completedDaysThisWeek');
+      if (daysList != null) {
+        completedDaysThisWeek = daysList.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toSet();
+      }
+
+      _recalculateNutrition();
+      notifyListeners();
+    } catch (_) {
+      // Hata durumunda sessizce devam et
+    }
+  }
+
   ImageProvider? get avatarImage {
     if (customPhotoBase64 != null && customPhotoBase64!.isNotEmpty) {
       try {
@@ -349,4 +414,8 @@ class UserProfile extends ChangeNotifier {
 // Global basit durum yönetimi
 class UserSession {
   static final UserProfile current = UserProfile();
+
+  static Future<void> init() async {
+    await current.loadFromPrefs();
+  }
 }

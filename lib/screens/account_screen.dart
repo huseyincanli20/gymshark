@@ -27,6 +27,7 @@ class _AccountScreenState extends State<AccountScreen> {
         profile.name = _nameController.text.trim();
       }
     });
+    profile.saveToPrefs();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(_isRegisterMode ? "Hesabınız başarıyla oluşturuldu! Hoş geldiniz 🎉" : "Giriş başarılı! Hoş geldiniz 🎉"),
@@ -36,9 +37,34 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   void _handleLogout() {
-    setState(() {
-      profile.isLoggedIn = false;
-    });
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        title: const Text("Çıkış Yap"),
+        content: const Text("Hesabınızdan çıkış yapmak istediğinize emin misiniz?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("İptal"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              setState(() {
+                profile.isLoggedIn = false;
+              });
+              profile.saveToPrefs();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Oturum kapatıldı. İstediğinizde tekrar giriş yapabilirsiniz.")),
+              );
+            },
+            child: const Text("Çıkış Yap", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

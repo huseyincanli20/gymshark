@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../models/fitness_models.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
+import '../services/open_food_facts_service.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
   const BarcodeScannerScreen({super.key});
@@ -76,10 +77,72 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
     super.dispose();
   }
 
-  void _onBarcodeDetected(FoodItem food, String code) {
+  Future<void> _fetchAndProcessBarcode(String code) async {
     if (!_isScanning) return;
     setState(() => _isScanning = false);
 
+    // Yükleniyor bildirimi göster
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              const CircularProgressIndicator(color: AppTheme.accent),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  "İnternetten ürün araştırılıyor...\n($code)",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // 1. Önce Open Food Facts API üzerinden gerçek ürünü sorgula
+    FoodItem? internetFood = await OpenFoodFactsService.fetchFoodByBarcode(code);
+
+    if (mounted) {
+      Navigator.pop(context); // Yükleniyor dialogunu kapat
+    }
+
+    if (internetFood != null) {
+      _onBarcodeDetected(internetFood, code, isFromInternet: true);
+      return;
+    }
+
+    // 2. İnternette bulunamazsa yerel hazır barkod veritabanını kontrol et
+    final sampleMatch = _sampleBarcodes.firstWhere(
+      (item) => item['code'] == code,
+      orElse: () => {'food': null},
+    );
+
+    if (sampleMatch['food'] != null) {
+      _onBarcodeDetected(sampleMatch['food'] as FoodItem, code);
+      return;
+    }
+
+    // 3. Hiçbir yerde yoksa kullanıcıya özel manuel giriş oluştur
+    final fallbackFood = FoodItem(
+      id: 'barcode_$code',
+      name: 'Taranan Ürün ($code)',
+      calories: 160.0,
+      protein: 8.0,
+      carbs: 20.0,
+      fat: 5.0,
+      category: 'Barkod Ürünü',
+    );
+    _onBarcodeDetected(fallbackFood, code);
+  }
+
+  void _onBarcodeDetected(FoodItem food, String code, {bool isFromInternet = false}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.cardColor,
@@ -106,18 +169,70 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Barkod Başarıyla Okundu! 🎉", style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 13)),
+                        Row(
+                          children: [
+                            const Text("Barkod Okundu! 🎉", style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 13)),
+                            const SizedBox(width: 6),
+                            if (isFromInternet)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blueAccent.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.public, size: 10, color: Colors.blueAccent),
+                                    SizedBox(width: 3),
+                                    Text("Canlı Veri", style: TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
                         Text(food.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                "Barkod Kodu: $code\nBesin Değerleri (100g/ml için): ${food.calories.toStringAsFixed(0)} kcal • P: ${food.protein}g • K: ${food.carbs}g • Y: ${food.fat}g",
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+              const SizedBox(height: 14),
+
+              // Besin Değerleri Detay Kartı
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("100g / 100ml Başına Kalori:", style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                        Text(
+                          "${food.calories.toStringAsFixed(0)} kcal",
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white12, height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNutritionBadge("Protein", "${food.protein}g", AppTheme.proteinColor),
+                        _buildNutritionBadge("Karbonhidrat", "${food.carbs}g", AppTheme.carbColor),
+                        _buildNutritionBadge("Yağ", "${food.fat}g", AppTheme.fatColor),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -144,30 +259,23 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
     });
   }
 
+  Widget _buildNutritionBadge(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+        const SizedBox(height: 4),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
+      ],
+    );
+  }
+
   void _handleLiveBarcodeCapture(BarcodeCapture capture) {
     if (!_isScanning) return;
     final barcodes = capture.barcodes;
     if (barcodes.isNotEmpty) {
       final code = barcodes.first.rawValue;
-      if (code != null && code.isNotEmpty) {
-        // Mevcut veritabanında ara veya otomatik besin üret
-        final match = _sampleBarcodes.firstWhere(
-          (item) => item['code'] == code,
-          orElse: () => {
-            'code': code,
-            'name': 'Taranan Ürün ($code)',
-            'food': FoodItem(
-              id: 'scan_${DateTime.now().millisecondsSinceEpoch}',
-              name: 'Barkodlu Besin ($code)',
-              calories: 180,
-              protein: 10.0,
-              carbs: 22.0,
-              fat: 5.0,
-              category: 'Barkod Ürünü',
-            )
-          },
-        );
-        _onBarcodeDetected(match['food'] as FoodItem, code);
+      if (code != null && code.trim().isNotEmpty) {
+        _fetchAndProcessBarcode(code.trim());
       }
     }
   }
@@ -195,23 +303,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
             onPressed: () {
               final code = codeCtrl.text.trim();
               Navigator.pop(context);
-              final match = _sampleBarcodes.firstWhere(
-                (item) => item['code'] == code,
-                orElse: () => {
-                  'code': code,
-                  'name': 'Bilinmeyen Besin ($code)',
-                  'food': FoodItem(
-                    id: 'custom_scan_${DateTime.now().millisecondsSinceEpoch}',
-                    name: 'Taranan Ürün ($code)',
-                    calories: 180,
-                    protein: 8.0,
-                    carbs: 22.0,
-                    fat: 4.0,
-                    category: 'Barkod Ürünü',
-                  )
-                },
-              );
-              _onBarcodeDetected(match['food'] as FoodItem, code);
+              if (code.isNotEmpty) {
+                _fetchAndProcessBarcode(code);
+              }
             },
             child: const Text("Sorgula", style: TextStyle(color: Colors.white)),
           )

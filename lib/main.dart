@@ -6,7 +6,9 @@ import 'screens/progress_screen.dart';
 import 'models/user_profile.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await UserSession.init();
   runApp(const GymTrackApp());
 }
 
