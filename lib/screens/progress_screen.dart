@@ -65,11 +65,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Row(
               children: [
                 Expanded(
-                  child: _buildMetricCard("Mevcut Kilo", "76.4 kg", "-1.8 kg bu ay", AppTheme.accent),
+                  child: _buildMetricCard("Mevcut Kilo", "${profile.weightKg} ${profile.weightUnit}", "Boy: ${profile.heightCm.toInt()} ${profile.heightUnit}", AppTheme.accent),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildMetricCard("Hacim (Volume)", "14,850 kg", "+12% artış", AppTheme.primary),
+                  child: _buildMetricCard("Hedef Kilo", "${profile.targetWeightKg} ${profile.weightUnit}", "Fark: ${(profile.weightKg - profile.targetWeightKg).abs().toStringAsFixed(1)} ${profile.weightUnit}", AppTheme.primary),
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../data/mock_data.dart';
+import '../models/user_profile.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 
@@ -99,7 +100,7 @@ class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text("Haftalık Aktivite", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text("4/5 Gün", style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
+                Text("4/${UserSession.current.weeklyWorkoutDays} Gün", style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 12),

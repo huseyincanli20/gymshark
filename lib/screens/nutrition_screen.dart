@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../models/fitness_models.dart';
+import '../models/user_profile.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
 
@@ -13,17 +14,18 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
-  final double _targetCalories = 2400;
-  final double _targetProtein = 160;
-  final double _targetCarbs = 260;
-  final double _targetFat = 70;
-
   final List<LoggedMeal> _todayMeals = [
     LoggedMeal(food: MockData.foods[1], amountGrams: 80), // Yulaf
     LoggedMeal(food: MockData.foods[2], amountGrams: 150), // Yumurta
     LoggedMeal(food: MockData.foods[0], amountGrams: 200), // Tavuk
     LoggedMeal(food: MockData.foods[3], amountGrams: 200), // Pilav
   ];
+
+  double get targetCalories => UserSession.current.dailyCalorieGoal;
+  // Hedef kaloriye göre dengeli protein (25%), karbonhidrat (50%), yağ (25%)
+  double get targetProtein => (targetCalories * 0.25) / 4;
+  double get targetCarbs => (targetCalories * 0.50) / 4;
+  double get targetFat => (targetCalories * 0.25) / 9;
 
   double get consumedCalories => _todayMeals.fold(0, (sum, m) => sum + m.totalCalories);
   double get consumedProtein => _todayMeals.fold(0, (sum, m) => sum + m.totalProtein);
@@ -104,7 +106,8 @@ class _NutritionScreenState extends State<NutritionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final calorieRatio = (consumedCalories / _targetCalories).clamp(0.0, 1.0);
+    final calorieRatio = (consumedCalories / targetCalories).clamp(0.0, 1.0);
+    final energyUnit = UserSession.current.energyUnit;
 
     return Scaffold(
       appBar: AppBar(
@@ -148,9 +151,9 @@ class _NutritionScreenState extends State<NutritionScreen> {
                                   color: AppTheme.textPrimary,
                                 ),
                               ),
-                              const Text(
-                                "Kalan kcal",
-                                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              Text(
+                                "/ ${targetCalories.toStringAsFixed(0)} $energyUnit",
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                               ),
                             ],
                           ),
@@ -161,11 +164,11 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildMacroRow("Protein", consumedProtein, _targetProtein, AppTheme.proteinColor),
+                            _buildMacroRow("Protein", consumedProtein, targetProtein, AppTheme.proteinColor),
                             const SizedBox(height: 12),
-                            _buildMacroRow("Karb", consumedCarbs, _targetCarbs, AppTheme.carbColor),
+                            _buildMacroRow("Karb", consumedCarbs, targetCarbs, AppTheme.carbColor),
                             const SizedBox(height: 12),
-                            _buildMacroRow("Yağ", consumedFat, _targetFat, AppTheme.fatColor),
+                            _buildMacroRow("Yağ", consumedFat, targetFat, AppTheme.fatColor),
                           ],
                         )
                       ],

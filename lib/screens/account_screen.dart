@@ -180,19 +180,22 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               _buildTile("Boy", "${profile.heightCm.toInt()} ${profile.heightUnit}", Icons.height, () {
                 _showEditDialog("Boy Güncelle (cm)", profile.heightCm.toString(), (val) {
-                  setState(() => profile.heightCm = double.tryParse(val) ?? profile.heightCm);
+                  final v = double.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newHeight: v));
                 });
               }),
               _buildDivider(),
               _buildTile("Kilo", "${profile.weightKg} ${profile.weightUnit}", Icons.monitor_weight_outlined, () {
                 _showEditDialog("Kilo Güncelle (kg)", profile.weightKg.toString(), (val) {
-                  setState(() => profile.weightKg = double.tryParse(val) ?? profile.weightKg);
+                  final v = double.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newWeight: v));
                 });
               }),
               _buildDivider(),
               _buildTile("Yaş", "${profile.age}", Icons.cake_outlined, () {
                 _showEditDialog("Yaş", profile.age.toString(), (val) {
-                  setState(() => profile.age = int.tryParse(val) ?? profile.age);
+                  final v = int.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newAge: v));
                 });
               }),
               _buildDivider(),
@@ -212,23 +215,31 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               _buildTile("Hedef Kilo", "${profile.targetWeightKg} ${profile.weightUnit}", Icons.flag_outlined, () {
                 _showEditDialog("Hedef Kilo (kg)", profile.targetWeightKg.toString(), (val) {
-                  setState(() => profile.targetWeightKg = double.tryParse(val) ?? profile.targetWeightKg);
+                  final v = double.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newTargetWeight: v));
                 });
               }),
               _buildDivider(),
               _buildTile("Günlük Kalori Hedefi", "${profile.dailyCalorieGoal.toInt()} ${profile.energyUnit}", Icons.local_fire_department_outlined, () {
                 _showEditDialog("Günlük Kalori", profile.dailyCalorieGoal.toString(), (val) {
-                  setState(() => profile.dailyCalorieGoal = double.tryParse(val) ?? profile.dailyCalorieGoal);
+                  final v = double.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newDailyCalorie: v));
                 });
               }),
               _buildDivider(),
               _buildTile("Günlük Su Hedefi", "${profile.dailyWaterGoalLiters} Litre", Icons.water_drop_outlined, () {
                 _showEditDialog("Su Hedefi (Litre)", profile.dailyWaterGoalLiters.toString(), (val) {
-                  setState(() => profile.dailyWaterGoalLiters = double.tryParse(val) ?? profile.dailyWaterGoalLiters);
+                  final v = double.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newDailyWater: v));
                 });
               }),
               _buildDivider(),
-              _buildTile("Haftalık Antrenman Hedefi", "${profile.weeklyWorkoutDays} Gün", Icons.calendar_month_outlined, null),
+              _buildTile("Haftalık Antrenman Hedefi", "${profile.weeklyWorkoutDays} Gün", Icons.calendar_month_outlined, () {
+                _showEditDialog("Haftalık Antrenman (Gün)", profile.weeklyWorkoutDays.toString(), (val) {
+                  final v = int.tryParse(val);
+                  if (v != null) setState(() => profile.updateProfile(newWeeklyWorkouts: v));
+                });
+              }),
             ],
           ),
         ),
@@ -319,6 +330,57 @@ class _AccountScreenState extends State<AccountScreen> {
                   onChanged: (val) {
                     if (val != null) setState(() => profile.energyUnit = val);
                   },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 5. HAKKIMIZDA
+        _buildSectionHeader("Hakkımızda", Icons.info_outline_rounded, AppTheme.primary),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.code_rounded, color: AppTheme.primary),
+                ),
+                title: const Text("Geliştirici", style: TextStyle(fontSize: 14)),
+                trailing: const Text(
+                  "Hüseyin Canlı",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primary),
+                ),
+              ),
+              _buildDivider(),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.fitness_center_rounded, color: AppTheme.accent),
+                ),
+                title: const Text("Uygulama"),
+                trailing: const Text(
+                  "GymTrack v1.0.0",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textSecondary),
+                ),
+              ),
+              _buildDivider(),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  "GymTrack; sporcuların antrenman, beslenme, kalori ve sağlık gelişimlerini profesyonelce takip edebilmeleri için Flutter ile geliştirilmiştir.",
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, height: 1.4),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],

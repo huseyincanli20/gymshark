@@ -1,4 +1,6 @@
-class UserProfile {
+import 'package:flutter/material.dart';
+
+class UserProfile extends ChangeNotifier {
   String name;
   String email;
   bool isLoggedIn;
@@ -46,6 +48,43 @@ class UserProfile {
     this.heightUnit = 'cm',
     this.energyUnit = 'kcal',
   });
+
+  void updateProfile({
+    String? newName,
+    String? newEmail,
+    bool? newIsLoggedIn,
+    double? newHeight,
+    double? newWeight,
+    int? newAge,
+    double? newTargetWeight,
+    double? newDailyCalorie,
+    double? newDailyWater,
+    int? newWeeklyWorkouts,
+    String? newWeightUnit,
+    String? newHeightUnit,
+    String? newEnergyUnit,
+    bool? newWorkoutReminders,
+    bool? newMealReminders,
+    bool? newWaterReminders,
+  }) {
+    if (newName != null) name = newName;
+    if (newEmail != null) email = newEmail;
+    if (newIsLoggedIn != null) isLoggedIn = newIsLoggedIn;
+    if (newHeight != null) heightCm = newHeight;
+    if (newWeight != null) weightKg = newWeight;
+    if (newAge != null) age = newAge;
+    if (newTargetWeight != null) targetWeightKg = newTargetWeight;
+    if (newDailyCalorie != null) dailyCalorieGoal = newDailyCalorie;
+    if (newDailyWater != null) dailyWaterGoalLiters = newDailyWater;
+    if (newWeeklyWorkouts != null) weeklyWorkoutDays = newWeeklyWorkouts;
+    if (newWeightUnit != null) weightUnit = newWeightUnit;
+    if (newHeightUnit != null) heightUnit = newHeightUnit;
+    if (newEnergyUnit != null) energyUnit = newEnergyUnit;
+    if (newWorkoutReminders != null) workoutReminders = newWorkoutReminders;
+    if (newMealReminders != null) mealReminders = newMealReminders;
+    if (newWaterReminders != null) waterReminders = newWaterReminders;
+    notifyListeners();
+  }
 }
 
 // Global basit durum yönetimi
