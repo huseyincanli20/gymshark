@@ -7,6 +7,7 @@ class CloudUserRecord {
   final String id;
   final String name;
   final String email;
+  final String password;
   final String createdAt;
   final Map<String, dynamic> metadata;
 
@@ -14,6 +15,7 @@ class CloudUserRecord {
     required this.id,
     required this.name,
     required this.email,
+    required this.password,
     required this.createdAt,
     this.metadata = const {},
   });
@@ -22,6 +24,7 @@ class CloudUserRecord {
     'id': id,
     'name': name,
     'email': email,
+    'password': password,
     'createdAt': createdAt,
     'metadata': metadata,
   };
@@ -30,6 +33,7 @@ class CloudUserRecord {
     id: json['id'] ?? '',
     name: json['name'] ?? '',
     email: json['email'] ?? '',
+    password: json['password'] ?? '',
     createdAt: json['createdAt'] ?? '',
     metadata: json['metadata'] != null ? Map<String, dynamic>.from(json['metadata']) : {},
   );
@@ -57,6 +61,7 @@ class CloudAuthService {
       id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       email: email,
+      password: password ?? '',
       createdAt: now,
       metadata: {
         'platform': defaultTargetPlatform.name,
@@ -129,8 +134,48 @@ class CloudAuthService {
   /// E-posta adresinin daha önce kayıt olup olmadığını kontrol eder
   Future<bool> isEmailAlreadyRegistered(String email) async {
     final cleanEmail = email.trim().toLowerCase();
+    // Yönetici hesabı kontrolü
+    if (cleanEmail == 'huseyincanli@gmail.com') return true;
+
     final users = await getCloudRegisteredUsers();
     return users.any((u) => u.email.trim().toLowerCase() == cleanEmail);
+  }
+
+  /// Giriş yaparken e-posta ve şifrenin doğruluğunu kontrol eder
+  Future<CloudUserRecord?> verifyCredentials(String email, String password) async {
+    final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Yönetici Hesabı Doğrulaması
+    if (cleanEmail == 'huseyincanli@gmail.com') {
+      if (password == '15715799') {
+        return CloudUserRecord(
+          id: 'admin_usr_001',
+          name: 'Hüseyin Canlı',
+          email: 'huseyincanli@gmail.com',
+          password: '15715799',
+          createdAt: DateTime.now().toIso8601String(),
+          metadata: {'role': 'admin'},
+        );
+      } else {
+        // Yönetici e-postası ama şifre yanlış
+        return null;
+      }
+    }
+
+    // 2. Normal Kayıtlı Kullanıcılar Doğrulaması
+    final users = await getCloudRegisteredUsers();
+    for (final u in users) {
+      if (u.email.trim().toLowerCase() == cleanEmail) {
+        if (u.password == password) {
+          return u;
+        } else {
+          // E-posta bulundu ama şifre yanlış
+          return null;
+        }
+      }
+    }
+
+    return null;
   }
 
   /// Bulutta kayıtlı tüm kullanıcıları listeler (Admin / Yedekleme için)

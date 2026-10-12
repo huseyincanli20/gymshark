@@ -61,6 +61,21 @@ class _AccountScreenState extends State<AccountScreen> {
           'targetWeightKg': profile.targetWeightKg,
         },
       );
+    } else {
+      // GİRİŞ YAP MODU: Şifre ve kimlik doğrulaması
+      final verifiedUser = await CloudAuthService.instance.verifyCredentials(email, password);
+      if (verifiedUser == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Hatalı e-posta veya şifre! Lütfen bilgilerinizi kontrol edin."),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return; // Hatalı şifrede kesinlikle giriş yapılması engellenir!
+      }
     }
 
     // Yönetici (Admin) Kimlik Kontrolü
