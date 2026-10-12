@@ -303,6 +303,20 @@ class UserProfile extends ChangeNotifier {
     saveToPrefs();
   }
 
+  /// Doğrudan Apple Health / Google Health Connect'ten canlı adımı aktarır
+  void syncStepsFromHealth(int steps) {
+    todaySteps = steps;
+    notifyListeners();
+    saveToPrefs();
+  }
+
+  /// Doğrudan Apple Health / Google Health Connect'ten canlı yakılan kaloriyi aktarır
+  void syncBurnedCaloriesFromHealth(double calories) {
+    todayBurnedCalories = calories;
+    notifyListeners();
+    saveToPrefs();
+  }
+
   void resetDailyBurnedAndSteps() {
     todayBurnedCalories = 0.0;
     todaySteps = 0;

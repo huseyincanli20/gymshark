@@ -49,7 +49,9 @@
 	<string>Besin barkodlarını taramak ve profil fotoğrafı çekmek için kamera erişimi gereklidir.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil fotoğrafı seçebilmeniz için fotoğraf galerisine erişim gereklidir.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Fotoğrafları kaydedebilmeniz için galeri izni gereklidir.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Günlük adım sayınızı ve yakılan kalori değerlerinizi otomatik olarak takip etmek için Apple Sağlık (HealthKit) verilerine erişim gereklidir.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Uygulamada tamamladığınız antrenman ve kalori kayıtlarınızı Apple Sağlık ile senkronize etmek için sağlık verisi yazma izni gereklidir.</string>
 </dict>
 </plist>

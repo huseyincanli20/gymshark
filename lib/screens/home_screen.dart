@@ -7,6 +7,7 @@ import '../models/workout_manager.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 import 'all_exercises_screen.dart';
+import '../services/health_service.dart';
 
 import 'account_screen.dart';
 
@@ -18,10 +19,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isSyncingHealth = false;
+
   @override
   void initState() {
     super.initState();
     UserSession.current.addListener(_onProfileChanged);
+    _syncHealthDataSilently();
+  }
+
+  Future<void> _syncHealthDataSilently() async {
+    try {
+      await HealthKitService.instance.syncTodayHealthData(requestIfNoAuth: false);
+    } catch (_) {}
+  }
+
+  Future<void> _triggerManualHealthSync() async {
+    setState(() {
+      _isSyncingHealth = true;
+    });
+    final success = await HealthKitService.instance.syncTodayHealthData(requestIfNoAuth: true);
+    if (mounted) {
+      setState(() {
+        _isSyncingHealth = false;
+      });
+      final msg = HealthKitService.instance.lastSyncMessage ?? 
+          (success ? "Sağlık uygulamasıyla senkronize edildi! 🍏" : "Bağlantı sağlanamadı.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: success ? AppTheme.accent : Colors.grey[800],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _onProfileChanged() {
@@ -136,65 +167,125 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // GÜNLÜK YAKILAN KALORİ & GÜNLÜK ADIM SAYAR PENCERESİ
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.monitor_heart_rounded, color: Colors.orangeAccent, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      "Günlük Aktivite & Sağlık",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: _isSyncingHealth ? null : _triggerManualHealthSync,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.accent.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _isSyncingHealth
+                            ? const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent),
+                              )
+                            : const Icon(Icons.sync_rounded, color: AppTheme.accent, size: 14),
+                        const SizedBox(width: 4),
+                        const Text(
+                          "Sağlık Eşitle",
+                          style: TextStyle(
+                            color: AppTheme.accent,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            Row(
               children: [
                 // 1. Günlük Yakılan Kalori Kartı
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.orangeAccent.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: _triggerManualHealthSync,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.orangeAccent.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.orangeAccent.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 20),
                               ),
-                              child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 20),
-                            ),
-                            Text(
-                              "Bugün",
-                              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "Yakılan Kalori",
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              "${profile.todayBurnedCalories.toInt()}",
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              "kcal",
-                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          profile.todayBurnedCalories > 0
-                              ? "Antrenman & Adım 🔥"
-                              : "Antrenman bekleniyor",
-                          style: const TextStyle(fontSize: 10, color: AppTheme.accent),
-                        ),
-                      ],
+                              Row(
+                                children: [
+                                  Icon(Icons.favorite, size: 12, color: Colors.redAccent.withOpacity(0.8)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    "Apple/Health",
+                                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "Yakılan Kalori",
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                "${profile.todayBurnedCalories.toInt()}",
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                "kcal",
+                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            profile.todayBurnedCalories > 0
+                                ? "Canlı Sağlık Verisi 🔥"
+                                : "Veri bekleniyor",
+                            style: const TextStyle(fontSize: 10, color: AppTheme.accent),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -227,7 +318,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 child: const Icon(Icons.directions_walk_rounded, color: AppTheme.accent, size: 20),
                               ),
-                              const Icon(Icons.edit, size: 14, color: AppTheme.textSecondary),
+                              Row(
+                                children: [
+                                  Icon(Icons.apple, size: 14, color: Colors.white.withOpacity(0.6)),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.sync, size: 14, color: AppTheme.accent),
+                                ],
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
