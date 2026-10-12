@@ -45,6 +45,24 @@ class WorkoutManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void replaceExercise(int index, Exercise newExercise) {
+    if (index >= 0 && index < activeWorkout.length) {
+      final oldSets = activeWorkout[index].sets;
+      activeWorkout[index] = ActiveExerciseLog(
+        exercise: newExercise,
+        sets: oldSets,
+      );
+      notifyListeners();
+    }
+  }
+
+  void updateExerciseSets(int index, List<WorkoutSet> updatedSets) {
+    if (index >= 0 && index < activeWorkout.length) {
+      activeWorkout[index].sets = updatedSets;
+      notifyListeners();
+    }
+  }
+
   void removeExercise(int index) {
     if (index >= 0 && index < activeWorkout.length) {
       activeWorkout.removeAt(index);

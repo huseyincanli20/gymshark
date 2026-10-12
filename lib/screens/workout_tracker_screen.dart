@@ -83,6 +83,215 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
     }
   }
 
+  void _showReplaceExerciseDialog(int exIndex) async {
+    final selected = await showModalBottomSheet<Exercise>(
+      context: context,
+      backgroundColor: AppTheme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text("Değiştirmek İstediğiniz Egzersizi Seçin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.builder(
+                itemCount: MockData.exercises.length,
+                itemBuilder: (context, index) {
+                  final ex = MockData.exercises[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.surfaceColor,
+                      child: const Icon(Icons.fitness_center, color: AppTheme.primary),
+                    ),
+                    title: Text(ex.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(ex.muscleGroup.name.toUpperCase(), style: const TextStyle(color: AppTheme.textSecondary)),
+                    trailing: const Icon(Icons.swap_horiz_rounded, color: AppTheme.accent),
+                    onTap: () => Navigator.pop(context, ex),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selected != null) {
+      workoutManager.replaceExercise(exIndex, selected);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Egzersiz '${selected.name}' ile değiştirildi ve kaydedildi! ✅"),
+            backgroundColor: AppTheme.accent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showEditSetsDialog(int exIndex) {
+    final log = workoutManager.activeWorkout[exIndex];
+    // Geçici set listesi klonla
+    final List<Map<String, TextEditingController>> setControllers = log.sets.map((s) {
+      return {
+        'weight': TextEditingController(text: s.weight.toString()),
+        'reps': TextEditingController(text: s.reps.toString()),
+      };
+    }).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppTheme.cardColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  const Icon(Icons.edit_note_rounded, color: AppTheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "${log.exercise.name} - Ağırlık & Set Düzenle",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Row(
+                        children: [
+                          SizedBox(width: 32, child: Text("Set", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12))),
+                          Expanded(child: Center(child: Text("Ağırlık (kg)", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                          SizedBox(width: 10),
+                          Expanded(child: Center(child: Text("Tekrar", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)))),
+                          SizedBox(width: 32),
+                        ],
+                      ),
+                      const Divider(),
+                      ...List.generate(setControllers.length, (i) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 32,
+                                child: Text("${i + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: setControllers[i]['weight'],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: AppTheme.surfaceColor,
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: setControllers[i]['reps'],
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: AppTheme.surfaceColor,
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 32,
+                                child: IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
+                                  onPressed: () {
+                                    if (setControllers.length > 1) {
+                                      setDialogState(() {
+                                        setControllers.removeAt(i);
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        icon: const Icon(Icons.add, color: AppTheme.accent),
+                        label: const Text("Yeni Set Ekle", style: TextStyle(color: AppTheme.accent)),
+                        onPressed: () {
+                          setDialogState(() {
+                            final lastW = setControllers.isNotEmpty ? setControllers.last['weight']!.text : "20";
+                            final lastR = setControllers.isNotEmpty ? setControllers.last['reps']!.text : "10";
+                            setControllers.add({
+                              'weight': TextEditingController(text: lastW),
+                              'reps': TextEditingController(text: lastR),
+                            });
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Vazgeç"),
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.check, color: Colors.black, size: 18),
+                  label: const Text("Kaydet", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                  onPressed: () {
+                    final updatedSets = setControllers.map((c) {
+                      return WorkoutSet(
+                        weight: double.tryParse(c['weight']!.text) ?? 20.0,
+                        reps: int.tryParse(c['reps']!.text) ?? 10,
+                        isCompleted: false,
+                      );
+                    }).toList();
+
+                    workoutManager.updateExerciseSets(exIndex, updatedSets);
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("${log.exercise.name} set ve ağırlık bilgileri güncellendi! 💾"),
+                        backgroundColor: AppTheme.surfaceColor,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     workoutManager.removeListener(_onWorkoutChanged);
@@ -177,10 +386,59 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                                 ],
                               ),
                             ),
-                            IconButton(
+                            PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary),
-                              onPressed: () {},
-                            )
+                              color: AppTheme.cardColor,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              onSelected: (value) {
+                                if (value == 'replace') {
+                                  _showReplaceExerciseDialog(exIndex);
+                                } else if (value == 'edit_sets') {
+                                  _showEditSetsDialog(exIndex);
+                                } else if (value == 'delete') {
+                                  workoutManager.removeExercise(exIndex);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("${log.exercise.name} antrenmandan çıkarıldı."),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'replace',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.swap_horiz_rounded, color: AppTheme.accent, size: 20),
+                                      SizedBox(width: 10),
+                                      Text("Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'edit_sets',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 20),
+                                      SizedBox(width: 10),
+                                      Text("Ağırlık & Set Düzenle", style: TextStyle(fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                                      SizedBox(width: 10),
+                                      Text("Egzersizi Kaldır", style: TextStyle(color: Colors.redAccent)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),
