@@ -366,7 +366,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                               ),
                               child: const Text("Gram Seç", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                               onPressed: () {
-                                _showGramPicker(food);
+                                _showGramPicker(food, closeModal: true);
                               },
                             ),
                           );
@@ -383,7 +383,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     );
   }
 
-  void _showGramPicker(FoodItem food) {
+  void _showGramPicker(FoodItem food, {bool closeModal = false}) {
     double selectedGrams = 100;
     final controller = TextEditingController(text: "100");
 
@@ -438,7 +438,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       spacing: 8,
                       children: [50, 100, 150, 200, 300].map((amount) {
                         return ChoiceChip(
-                          label: Text("${amount}${food.category.contains('İçecek') ? 'ml' : 'g'}"),
+                          label: Text("$amount${food.category.contains('İçecek') ? 'ml' : 'g'}"),
                           selected: selectedGrams == amount,
                           onSelected: (selected) {
                             setDialogState(() {
@@ -499,8 +499,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       setState(() {
                         _todayMeals.add(LoggedMeal(food: food, amountGrams: selectedGrams));
                       });
-                      Navigator.pop(context); // Dialog kapat
-                      Navigator.pop(context); // Modal kapat
+                      Navigator.pop(context); // Gram picker dialogunu kapat
+                      if (closeModal && Navigator.canPop(context)) {
+                        Navigator.pop(context); // Yalnızca liste modalından açıldıysa modalı kapat
+                      }
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("${food.name} (${selectedGrams.toInt()}${food.category.contains('İçecek') ? 'ml' : 'g'}) eklendi! 🥗"),
