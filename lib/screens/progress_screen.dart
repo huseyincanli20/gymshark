@@ -1,15 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../models/user_profile.dart';
+import 'account_screen.dart';
 
-class ProgressScreen extends StatelessWidget {
+class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
 
   @override
+  State<ProgressScreen> createState() => _ProgressScreenState();
+}
+
+class _ProgressScreenState extends State<ProgressScreen> {
+  @override
   Widget build(BuildContext context) {
+    final profile = UserSession.current;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("İlerleme ve İstatistikler"),
+        actions: [
+          IconButton(
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  profile.isLoggedIn ? Icons.account_circle : Icons.account_circle_outlined,
+                  size: 28,
+                  color: profile.isLoggedIn ? AppTheme.accent : AppTheme.textPrimary,
+                ),
+                if (!profile.isLoggedIn)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: "Hesap & Ayarlar",
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountScreen()),
+              );
+              setState(() {}); // Profil güncellendiyse ekranı yenile
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

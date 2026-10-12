@@ -1,0 +1,397 @@
+import 'package:flutter/material.dart';
+import '../models/user_profile.dart';
+import '../theme/app_theme.dart';
+
+class AccountScreen extends StatefulWidget {
+  const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  final _emailController = TextEditingController(text: 'huseyin@gymtrack.com');
+  final _passwordController = TextEditingController(text: '123456');
+  bool _obscurePassword = true;
+
+  final profile = UserSession.current;
+
+  void _handleLogin() {
+    setState(() {
+      profile.isLoggedIn = true;
+      profile.email = _emailController.text.trim();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Giriş başarılı! Hoş geldiniz 🎉"),
+        backgroundColor: AppTheme.accent,
+      ),
+    );
+  }
+
+  void _handleLogout() {
+    setState(() {
+      profile.isLoggedIn = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(profile.isLoggedIn ? "Hesabım & Ayarlar" : "Giriş Yap"),
+        actions: [
+          if (profile.isLoggedIn)
+            IconButton(
+              icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+              tooltip: "Çıkış Yap",
+              onPressed: _handleLogout,
+            )
+        ],
+      ),
+      body: profile.isLoggedIn ? _buildProfileContent() : _buildLoginForm(),
+    );
+  }
+
+  // --- GİRİŞ FORMU ---
+  Widget _buildLoginForm() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.account_circle,
+                size: 80,
+                color: AppTheme.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "GymTrack Hesabınıza Giriş Yapın",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Sağlık detaylarınız, antrenman hedefleriniz ve tercihleriniz senkronize edilsin.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: "E-Posta",
+                prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.primary),
+                filled: true,
+                fillColor: AppTheme.cardColor,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: "Şifre",
+                prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primary),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: AppTheme.textSecondary),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                filled: true,
+                fillColor: AppTheme.cardColor,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: _handleLogin,
+                child: const Text("Giriş Yap", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- GİRİŞ YAPILMIŞ PROFİL VE AYARLAR ---
+  Widget _buildProfileContent() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Profil Başlık Kartı
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: AppTheme.primary.withOpacity(0.2),
+                  child: const Icon(Icons.person, size: 36, color: AppTheme.primary),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(profile.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(profile.email, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text("Aktif Üye", style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 11)),
+                )
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 1. SAĞLIK AYRINTILARI
+        _buildSectionHeader("Sağlık Ayrıntıları", Icons.favorite_rounded, Colors.redAccent),
+        Card(
+          child: Column(
+            children: [
+              _buildTile("Boy", "${profile.heightCm.toInt()} ${profile.heightUnit}", Icons.height, () {
+                _showEditDialog("Boy Güncelle (cm)", profile.heightCm.toString(), (val) {
+                  setState(() => profile.heightCm = double.tryParse(val) ?? profile.heightCm);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Kilo", "${profile.weightKg} ${profile.weightUnit}", Icons.monitor_weight_outlined, () {
+                _showEditDialog("Kilo Güncelle (kg)", profile.weightKg.toString(), (val) {
+                  setState(() => profile.weightKg = double.tryParse(val) ?? profile.weightKg);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Yaş", "${profile.age}", Icons.cake_outlined, () {
+                _showEditDialog("Yaş", profile.age.toString(), (val) {
+                  setState(() => profile.age = int.tryParse(val) ?? profile.age);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Cinsiyet", profile.gender, Icons.transgender, null),
+              _buildDivider(),
+              _buildTile("Kan Grubu", profile.bloodGroup, Icons.bloodtype, null),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 2. HEDEFLER
+        _buildSectionHeader("Hedefler", Icons.track_changes_rounded, Colors.amber),
+        Card(
+          child: Column(
+            children: [
+              _buildTile("Hedef Kilo", "${profile.targetWeightKg} ${profile.weightUnit}", Icons.flag_outlined, () {
+                _showEditDialog("Hedef Kilo (kg)", profile.targetWeightKg.toString(), (val) {
+                  setState(() => profile.targetWeightKg = double.tryParse(val) ?? profile.targetWeightKg);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Günlük Kalori Hedefi", "${profile.dailyCalorieGoal.toInt()} ${profile.energyUnit}", Icons.local_fire_department_outlined, () {
+                _showEditDialog("Günlük Kalori", profile.dailyCalorieGoal.toString(), (val) {
+                  setState(() => profile.dailyCalorieGoal = double.tryParse(val) ?? profile.dailyCalorieGoal);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Günlük Su Hedefi", "${profile.dailyWaterGoalLiters} Litre", Icons.water_drop_outlined, () {
+                _showEditDialog("Su Hedefi (Litre)", profile.dailyWaterGoalLiters.toString(), (val) {
+                  setState(() => profile.dailyWaterGoalLiters = double.tryParse(val) ?? profile.dailyWaterGoalLiters);
+                });
+              }),
+              _buildDivider(),
+              _buildTile("Haftalık Antrenman Hedefi", "${profile.weeklyWorkoutDays} Gün", Icons.calendar_month_outlined, null),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 3. BİLDİRİMLER
+        _buildSectionHeader("Bildirimler", Icons.notifications_rounded, AppTheme.accent),
+        Card(
+          child: Column(
+            children: [
+              SwitchListTile(
+                title: const Text("Antrenman Hatırlatıcıları"),
+                subtitle: const Text("Planlanan günlerde antrenmanı kaçırma", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                value: profile.workoutReminders,
+                activeColor: AppTheme.accent,
+                onChanged: (val) => setState(() => profile.workoutReminders = val),
+              ),
+              _buildDivider(),
+              SwitchListTile(
+                title: const Text("Öğün & Kalori Bildirimleri"),
+                subtitle: const Text("Öğün loglamayı hatırlatan bildirimler", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                value: profile.mealReminders,
+                activeColor: AppTheme.accent,
+                onChanged: (val) => setState(() => profile.mealReminders = val),
+              ),
+              _buildDivider(),
+              SwitchListTile(
+                title: const Text("Su Hatırlatıcı"),
+                subtitle: const Text("Düzenli su içme bildirimleri", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                value: profile.waterReminders,
+                activeColor: AppTheme.accent,
+                onChanged: (val) => setState(() => profile.waterReminders = val),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 4. ÖLÇÜ BİRİMLERİ
+        _buildSectionHeader("Ölçü Birimleri", Icons.straighten_rounded, AppTheme.fatColor),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text("Ağırlık Birimi"),
+                trailing: DropdownButton<String>(
+                  value: profile.weightUnit,
+                  dropdownColor: AppTheme.cardColor,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'kg', child: Text("Kilogram (kg)")),
+                    DropdownMenuItem(value: 'lbs', child: Text("Pound (lbs)")),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => profile.weightUnit = val);
+                  },
+                ),
+              ),
+              _buildDivider(),
+              ListTile(
+                title: const Text("Boy Birimi"),
+                trailing: DropdownButton<String>(
+                  value: profile.heightUnit,
+                  dropdownColor: AppTheme.cardColor,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'cm', child: Text("Santimetre (cm)")),
+                    DropdownMenuItem(value: 'inch', child: Text("İnç (in)")),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => profile.heightUnit = val);
+                  },
+                ),
+              ),
+              _buildDivider(),
+              ListTile(
+                title: const Text("Enerji Birimi"),
+                trailing: DropdownButton<String>(
+                  value: profile.energyUnit,
+                  dropdownColor: AppTheme.cardColor,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'kcal', child: Text("Kalori (kcal)")),
+                    DropdownMenuItem(value: 'kJ', child: Text("Kilojoule (kJ)")),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => profile.energyUnit = val);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTile(String title, String value, IconData icon, VoidCallback? onTap) {
+    return ListTile(
+      leading: Icon(icon, color: AppTheme.textSecondary, size: 22),
+      title: Text(title, style: const TextStyle(fontSize: 14)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          if (onTap != null) const Icon(Icons.chevron_right, color: AppTheme.textSecondary, size: 18),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(height: 1, color: AppTheme.surfaceColor, indent: 16, endIndent: 16);
+  }
+
+  void _showEditDialog(String title, String initialValue, Function(String) onSave) {
+    final controller = TextEditingController(text: initialValue);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          title: Text(title),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("İptal"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+              onPressed: () {
+                onSave(controller.text);
+                Navigator.pop(context);
+              },
+              child: const Text("Kaydet", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
