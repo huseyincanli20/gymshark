@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../models/fitness_models.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
@@ -13,6 +14,12 @@ class BarcodeScannerScreen extends StatefulWidget {
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
+  final MobileScannerController _cameraController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.normal,
+    facing: CameraFacing.back,
+    torchEnabled: false,
+  );
+
   bool _isTorchOn = false;
   bool _isScanning = true;
 
@@ -65,6 +72,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
   @override
   void dispose() {
     _animationController.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 
@@ -136,6 +144,34 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
     });
   }
 
+  void _handleLiveBarcodeCapture(BarcodeCapture capture) {
+    if (!_isScanning) return;
+    final barcodes = capture.barcodes;
+    if (barcodes.isNotEmpty) {
+      final code = barcodes.first.rawValue;
+      if (code != null && code.isNotEmpty) {
+        // Mevcut veritabanında ara veya otomatik besin üret
+        final match = _sampleBarcodes.firstWhere(
+          (item) => item['code'] == code,
+          orElse: () => {
+            'code': code,
+            'name': 'Taranan Ürün ($code)',
+            'food': FoodItem(
+              id: 'scan_${DateTime.now().millisecondsSinceEpoch}',
+              name: 'Barkodlu Besin ($code)',
+              calories: 180,
+              protein: 10.0,
+              carbs: 22.0,
+              fat: 5.0,
+              category: 'Barkod Ürünü',
+            )
+          },
+        );
+        _onBarcodeDetected(match['food'] as FoodItem, code);
+      }
+    }
+  }
+
   void _manualCodeEntry() {
     final codeCtrl = TextEditingController();
     showDialog(
@@ -200,13 +236,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
             icon: Icon(_isTorchOn ? Icons.flash_on : Icons.flash_off, color: _isTorchOn ? AppTheme.accent : Colors.white),
             onPressed: () {
               setState(() => _isTorchOn = !_isTorchOn);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_isTorchOn ? "Flaş açıldı 🔦" : "Flaş kapatıldı"),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
+              _cameraController.toggleTorch();
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.cameraswitch, color: Colors.white),
+            onPressed: () => _cameraController.switchCamera(),
           ),
           IconButton(
             icon: const Icon(Icons.keyboard, color: Colors.white),
@@ -217,19 +252,29 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
       ),
       body: Stack(
         children: [
-          // Kamera Simülasyonu & Grid Arka Planı
-          Container(
-            color: const Color(0xFF101418),
-            child: Center(
-              child: Opacity(
-                opacity: 0.25,
-                child: Icon(
-                  Icons.camera_alt_outlined,
-                  size: 260,
-                  color: Colors.white.withOpacity(0.3),
+          // Gerçek Canlı Kamera Akışı (Telefonda ve webde kamerayı açar)
+          MobileScanner(
+            controller: _cameraController,
+            onDetect: _handleLiveBarcodeCapture,
+            errorBuilder: (context, error, child) {
+              return Container(
+                color: const Color(0xFF101418),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.videocam_off_outlined, size: 70, color: Colors.white.withOpacity(0.4)),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Kamera başlatılamadı veya izin verilmedi.\nLütfen kamera iznini kontrol edin.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
 
           // Karartılmış Kamera Vizörü (Overlay)
@@ -298,15 +343,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> with Single
                       Icon(Icons.info_outline, color: AppTheme.accent, size: 18),
                       SizedBox(width: 8),
                       Text(
-                        "Barkodu veya QR kodu çerçevenin içine hizalayın",
+                        "Barkodu veya QR kodu kameraya gösterin",
                         style: TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // Hızlı Barkod Test Butonları
+                // Hızlı Barkod Test Butonları (Test amaçlı da kullanılabilir)
                 Wrap(
                   spacing: 10,
                   runSpacing: 8,

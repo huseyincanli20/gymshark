@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Besin barkodlarını taramak ve profil fotoğrafı çekmek için kamera erişimi gereklidir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil fotoğrafı seçebilmeniz için fotoğraf galerisine erişim gereklidir.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Fotoğrafları kaydedebilmeniz için galeri izni gereklidir.</string>
 </dict>
 </plist>

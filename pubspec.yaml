@@ -40,6 +40,8 @@ dependencies:
   percent_indicator: ^4.2.5
   google_fonts: ^6.3.0
   lucide_icons: ^0.257.0
+  image_picker: ^1.1.2
+  mobile_scanner: ^5.2.3
 
 dev_dependencies:
   flutter_test:
