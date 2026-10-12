@@ -48,6 +48,203 @@ class _NutritionScreenState extends State<NutritionScreen> {
   double get consumedCarbs => _todayMeals.fold(0, (sum, m) => sum + m.totalCarbs);
   double get consumedFat => _todayMeals.fold(0, (sum, m) => sum + m.totalFat);
 
+  void _showCreateCustomFoodDialog({VoidCallback? onCreated}) {
+    final nameController = TextEditingController();
+    final calController = TextEditingController();
+    final proteinController = TextEditingController();
+    final carbsController = TextEditingController();
+    final fatController = TextEditingController();
+    String selectedCategory = 'Özel / Tarif';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppTheme.cardColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.restaurant_menu, color: AppTheme.accent, size: 22),
+                  SizedBox(width: 8),
+                  Text("Kendi Besinini Ekle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Kendi hazırladığın yiyecek veya tarifin 100g/ml değerlerini gir:",
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: "Besin / Yemek Adı",
+                        hintText: "Örn: Anne Köftesi, Protein Pankek",
+                        filled: true,
+                        fillColor: AppTheme.surfaceColor,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: calController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: "Kalori (kcal)",
+                              suffixText: "kcal",
+                              filled: true,
+                              fillColor: AppTheme.surfaceColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: selectedCategory,
+                            dropdownColor: AppTheme.surfaceColor,
+                            decoration: InputDecoration(
+                              labelText: "Kategori",
+                              filled: true,
+                              fillColor: AppTheme.surfaceColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 'Özel / Tarif', child: Text('Özel / Tarif', style: TextStyle(fontSize: 12))),
+                              DropdownMenuItem(value: 'Et & Protein', child: Text('Et & Protein', style: TextStyle(fontSize: 12))),
+                              DropdownMenuItem(value: 'Karbonhidrat', child: Text('Karbonhidrat', style: TextStyle(fontSize: 12))),
+                              DropdownMenuItem(value: 'İçecek', child: Text('İçecek', style: TextStyle(fontSize: 12))),
+                              DropdownMenuItem(value: 'Atıştırmalık', child: Text('Atıştırmalık', style: TextStyle(fontSize: 12))),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                setDialogState(() => selectedCategory = val);
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text("Makro Değerleri (100g için):", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: proteinController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: "Protein (g)",
+                              filled: true,
+                              fillColor: AppTheme.surfaceColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: TextField(
+                            controller: carbsController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: "Karb (g)",
+                              filled: true,
+                              fillColor: AppTheme.surfaceColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: TextField(
+                            controller: fatController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: "Yağ (g)",
+                              filled: true,
+                              fillColor: AppTheme.surfaceColor,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Vazgeç"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accent,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    final cal = double.tryParse(calController.text.replaceAll(',', '.')) ?? 0;
+                    final protein = double.tryParse(proteinController.text.replaceAll(',', '.')) ?? 0;
+                    final carbs = double.tryParse(carbsController.text.replaceAll(',', '.')) ?? 0;
+                    final fat = double.tryParse(fatController.text.replaceAll(',', '.')) ?? 0;
+
+                    if (name.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Lütfen besin adı giriniz!")),
+                      );
+                      return;
+                    }
+
+                    final newFood = FoodItem(
+                      id: "custom_${DateTime.now().millisecondsSinceEpoch}",
+                      name: name,
+                      calories: cal,
+                      protein: protein,
+                      carbs: carbs,
+                      fat: fat,
+                      category: selectedCategory,
+                    );
+
+                    // Listeye en başa ekle
+                    MockData.foods.insert(0, newFood);
+                    Navigator.pop(context);
+                    if (onCreated != null) {
+                      onCreated();
+                    } else {
+                      setState(() {});
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("✨ \"$name\" besinler listesine eklendi!"),
+                        backgroundColor: AppTheme.accent,
+                      ),
+                    );
+
+                    // Hemen gram seçme ekranını aç
+                    _showGramPicker(newFood);
+                  },
+                  child: const Text("Kaydet & Ekle", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showAddFoodModal() {
     String searchQuery = "";
     showModalBottomSheet(
@@ -66,15 +263,47 @@ class _NutritionScreenState extends State<NutritionScreen> {
             }).toList();
 
             return DraggableScrollableSheet(
-              initialChildSize: 0.75,
+              initialChildSize: 0.8,
               maxChildSize: 0.95,
               minChildSize: 0.45,
               expand: false,
               builder: (context, scrollController) {
                 return Column(
                   children: [
+                    // Üst Başlık & Kendi Besinini Ekle Butonu
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "Besin Listesi & Ekleme",
+                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.accent,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text("Kendi Besinini Ekle", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              _showCreateCustomFoodDialog(
+                                onCreated: () {
+                                  setModalState(() {});
+                                  setState(() {});
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
@@ -109,8 +338,22 @@ class _NutritionScreenState extends State<NutritionScreen> {
                         itemCount: filteredFoods.length,
                         itemBuilder: (context, index) {
                           final food = filteredFoods[index];
+                          final isCustom = food.id.startsWith("custom_");
                           return ListTile(
-                            title: Text(food.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(food.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                if (isCustom)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accent.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text("ÖZEL", style: TextStyle(color: AppTheme.accent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ),
+                              ],
+                            ),
                             subtitle: Text(
                               "${food.category} • ${food.calories.toStringAsFixed(0)} kcal | P:${food.protein}g C:${food.carbs}g Y:${food.fat}g (100g/ml)",
                               style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
@@ -360,11 +603,28 @@ class _NutritionScreenState extends State<NutritionScreen> {
                   "Bugünün Öğünleri",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                TextButton.icon(
-                  icon: const Icon(Icons.add, size: 18, color: AppTheme.primary),
-                  label: const Text("Besin Ekle", style: TextStyle(color: AppTheme.primary)),
-                  onPressed: _showAddFoodModal,
-                )
+                Row(
+                  children: [
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.accent,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      icon: const Icon(Icons.restaurant_menu, size: 16),
+                      label: const Text("Kendi Besinin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: () => _showCreateCustomFoodDialog(),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text("Besin Ekle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: _showAddFoodModal,
+                    ),
+                  ],
+                ),
               ],
             ),
 
