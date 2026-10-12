@@ -10,20 +10,25 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
+  bool _isRegisterMode = false;
+  final _nameController = TextEditingController(text: 'Hüseyin Canlı');
   final _emailController = TextEditingController(text: 'huseyin@gymtrack.com');
   final _passwordController = TextEditingController(text: '123456');
   bool _obscurePassword = true;
 
   final profile = UserSession.current;
 
-  void _handleLogin() {
+  void _handleAuthSubmit() {
     setState(() {
       profile.isLoggedIn = true;
       profile.email = _emailController.text.trim();
+      if (_isRegisterMode && _nameController.text.trim().isNotEmpty) {
+        profile.name = _nameController.text.trim();
+      }
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Giriş başarılı! Hoş geldiniz 🎉"),
+      SnackBar(
+        content: Text(_isRegisterMode ? "Hesabınız başarıyla oluşturuldu! Hoş geldiniz 🎉" : "Giriş başarılı! Hoş geldiniz 🎉"),
         backgroundColor: AppTheme.accent,
       ),
     );
@@ -39,7 +44,7 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(profile.isLoggedIn ? "Hesabım & Ayarlar" : "Giriş Yap"),
+        title: Text(profile.isLoggedIn ? "Hesabım & Ayarlar" : (_isRegisterMode ? "Kayıt Ol" : "Giriş Yap")),
         actions: [
           if (profile.isLoggedIn)
             IconButton(
@@ -53,7 +58,7 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  // --- GİRİŞ FORMU ---
+  // --- GİRİŞ / KAYIT FORMU ---
   Widget _buildLoginForm() {
     return Center(
       child: SingleChildScrollView(
@@ -68,25 +73,97 @@ class _AccountScreenState extends State<AccountScreen> {
                 color: AppTheme.primary.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.account_circle,
-                size: 80,
+              child: Icon(
+                _isRegisterMode ? Icons.person_add_alt_1_rounded : Icons.account_circle,
+                size: 70,
                 color: AppTheme.primary,
               ),
             ),
+            const SizedBox(height: 20),
+            Text(
+              _isRegisterMode ? "GymTrack'e Kayıt Olun" : "GymTrack Hesabınıza Giriş Yapın",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _isRegisterMode
+                  ? "Sağlık ve antrenman yolculuğunuza hemen başlayın."
+                  : "Sağlık detaylarınız, antrenman hedefleriniz ve tercihleriniz senkronize edilsin.",
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
             const SizedBox(height: 24),
-            const Text(
-              "GymTrack Hesabınıza Giriş Yapın",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+
+            // Giriş / Kayıt Geçiş Tabı
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _isRegisterMode = false),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: !_isRegisterMode ? AppTheme.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Giriş Yap",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: !_isRegisterMode ? Colors.white : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _isRegisterMode = true),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _isRegisterMode ? AppTheme.primary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Kayıt Ol",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _isRegisterMode ? Colors.white : AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              "Sağlık detaylarınız, antrenman hedefleriniz ve tercihleriniz senkronize edilsin.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-            ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            if (_isRegisterMode) ...[
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: "Ad Soyad",
+                  prefixIcon: const Icon(Icons.badge_outlined, color: AppTheme.primary),
+                  filled: true,
+                  fillColor: AppTheme.cardColor,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
@@ -121,8 +198,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   backgroundColor: AppTheme.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: _handleLogin,
-                child: const Text("Giriş Yap", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                onPressed: _handleAuthSubmit,
+                child: Text(
+                  _isRegisterMode ? "Hesap Oluştur ve Başla" : "Giriş Yap",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -199,9 +279,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 });
               }),
               _buildDivider(),
-              _buildTile("Cinsiyet", profile.gender, Icons.transgender, null),
+              _buildTile("Cinsiyet", profile.gender, Icons.transgender, () {
+                _showGenderPicker();
+              }),
               _buildDivider(),
-              _buildTile("Kan Grubu", profile.bloodGroup, Icons.bloodtype, null),
+              _buildTile("Kan Grubu", profile.bloodGroup, Icons.bloodtype, () {
+                _showBloodGroupPicker();
+              }),
             ],
           ),
         ),
@@ -452,6 +536,82 @@ class _AccountScreenState extends State<AccountScreen> {
               child: const Text("Kaydet", style: TextStyle(color: Colors.white)),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showGenderPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final options = ['Erkek', 'Kadın', 'Diğer / Belirtmek İstemiyorum'];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Cinsiyet Seçin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+              const Divider(height: 1),
+              ...options.map((g) {
+                final isSelected = profile.gender == g;
+                return ListTile(
+                  title: Text(g, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                  trailing: isSelected ? const Icon(Icons.check, color: AppTheme.accent) : null,
+                  onTap: () {
+                    setState(() {
+                      profile.updateProfile(newGender: g);
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBloodGroupPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final options = ['A Rh+', 'A Rh-', 'B Rh+', 'B Rh-', 'AB Rh+', 'AB Rh-', '0 Rh+', '0 Rh-'];
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text("Kan Grubu Seçin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView(
+                  children: options.map((bg) {
+                    final isSelected = profile.bloodGroup == bg;
+                    return ListTile(
+                      title: Text(bg, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                      trailing: isSelected ? const Icon(Icons.check, color: AppTheme.accent) : null,
+                      onTap: () {
+                        setState(() {
+                          profile.updateProfile(newBloodGroup: bg);
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

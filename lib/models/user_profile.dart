@@ -63,6 +63,8 @@ class UserProfile extends ChangeNotifier {
     String? newWeightUnit,
     String? newHeightUnit,
     String? newEnergyUnit,
+    String? newGender,
+    String? newBloodGroup,
     bool? newWorkoutReminders,
     bool? newMealReminders,
     bool? newWaterReminders,
@@ -80,6 +82,8 @@ class UserProfile extends ChangeNotifier {
     if (newWeightUnit != null) weightUnit = newWeightUnit;
     if (newHeightUnit != null) heightUnit = newHeightUnit;
     if (newEnergyUnit != null) energyUnit = newEnergyUnit;
+    if (newGender != null) gender = newGender;
+    if (newBloodGroup != null) bloodGroup = newBloodGroup;
     if (newWorkoutReminders != null) workoutReminders = newWorkoutReminders;
     if (newMealReminders != null) mealReminders = newMealReminders;
     if (newWaterReminders != null) waterReminders = newWaterReminders;
