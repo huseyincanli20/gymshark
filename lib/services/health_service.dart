@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
+import 'package:pedometer/pedometer.dart';
 import '../models/user_profile.dart';
 
 class HealthKitService {
@@ -11,6 +12,10 @@ class HealthKitService {
   bool _isConfigured = false;
   bool _isSyncing = false;
   String? _lastSyncMessage;
+
+  // Canlı Pedometer Akışı
+  Stream<StepCount>? _stepCountStream;
+  int _lastStreamSteps = 0;
 
   bool get isSyncing => _isSyncing;
   String? get lastSyncMessage => _lastSyncMessage;
@@ -31,6 +36,7 @@ class HealthKitService {
     try {
       if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
         await _health.configure();
+        _initLivePedometerStream();
       }
       _isConfigured = true;
     } catch (e) {
@@ -38,10 +44,38 @@ class HealthKitService {
     }
   }
 
-  /// Apple Health veya Android Health Connect'ten izin iste
+  /// Telefonun hareket sensörlerini (Apple CoreMotion / Pedometer) canlı dinler
+  void _initLivePedometerStream() {
+    if (kIsWeb) return;
+    try {
+      _stepCountStream = Pedometer.stepCountStream;
+      _stepCountStream?.listen(
+        (StepCount event) {
+          debugPrint("Live Pedometer Step event: ${event.steps}");
+          _lastStreamSteps = event.steps;
+          final profile = UserSession.current;
+          if (event.steps > 0 && event.steps != profile.todaySteps) {
+            profile.syncStepsFromHealth(event.steps);
+            // Her adım için Apple Fitness kalorisi hesapla
+            final stepCal = (event.steps * 0.042);
+            if (stepCal > profile.todayBurnedCalories) {
+              profile.syncBurnedCaloriesFromHealth(stepCal);
+            }
+          }
+        },
+        onError: (error) {
+          debugPrint("Pedometer stream error: $error");
+        },
+      );
+    } catch (e) {
+      debugPrint("Pedometer initialization error: $e");
+    }
+  }
+
+  /// Apple Fitness veya Android Health Connect'ten izin iste
   Future<bool> requestPermissions() async {
     if (kIsWeb) {
-      _lastSyncMessage = "Web platformunda sağlık uygulaması desteklenmez.";
+      _lastSyncMessage = "Web platformunda Fitness uygulaması desteklenmez.";
       return false;
     }
 
@@ -63,7 +97,7 @@ class HealthKitService {
   /// Canlı olarak bugünkü adım ve yakılan kalori verilerini çekip UserSession'a kaydeder
   Future<bool> syncTodayHealthData({bool requestIfNoAuth = true}) async {
     if (kIsWeb) {
-      _lastSyncMessage = "Web ortamında HealthKit simüle edildi.";
+      _lastSyncMessage = "Web ortamında Fitness verisi simüle edildi.";
       return false;
     }
 
@@ -73,7 +107,7 @@ class HealthKitService {
     try {
       await _ensureConfigured();
 
-      // Apple Health / Health Connect izin isteme diyaloğunu doğrudan tetikle
+      // 1. Apple Health / Fitness izin isteme diyaloğunu tetikle
       if (requestIfNoAuth) {
         try {
           await _health.requestAuthorization(
@@ -88,7 +122,7 @@ class HealthKitService {
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day, 0, 0, 0);
 
-      // 1. Adım Verisini Çek
+      // 2. Adım Verisini Çek (Önce HealthKit, başarısızsa CoreMotion Pedometer)
       int? steps;
       try {
         steps = await _health.getTotalStepsInInterval(startOfDay, now);
@@ -96,7 +130,11 @@ class HealthKitService {
         debugPrint("getTotalStepsInInterval error: $e");
       }
 
-      // 2. Yakılan Aktif Kaloriyi Çek
+      if ((steps == null || steps == 0) && _lastStreamSteps > 0) {
+        steps = _lastStreamSteps;
+      }
+
+      // 3. Yakılan Aktif Kaloriyi Çek (Apple Fitness Move / Hareket Kalorisi)
       double burnedCalories = 0.0;
       try {
         final caloriePoints = await _health.getHealthDataFromTypes(
@@ -115,6 +153,11 @@ class HealthKitService {
         debugPrint("getHealthDataFromTypes ACTIVE_ENERGY_BURNED error: $e");
       }
 
+      // Eğer HealthKit doğrudan 0 döndüyse ve adım varsa adımlardan harcanan kaloriyi de ekle
+      if (burnedCalories == 0.0 && steps != null && steps > 0) {
+        burnedCalories = steps * 0.042;
+      }
+
       // Verileri UserSession profiline aktar
       final profile = UserSession.current;
       bool hasChanges = false;
@@ -130,9 +173,9 @@ class HealthKitService {
       }
 
       if (hasChanges) {
-        _lastSyncMessage = "Sağlık uygulamasından güncellendi: ${steps ?? 0} adım, ${burnedCalories.toInt()} kcal 🔥";
+        _lastSyncMessage = "Fitness verileri güncellendi: ${profile.todaySteps} adım, ${profile.todayBurnedCalories.toInt()} kcal 🔥";
       } else {
-        _lastSyncMessage = "Bağlantı kuruldu (Bugün için yeni veri bulunamadı).";
+        _lastSyncMessage = "Fitness bağlantısı aktif (Bugün henüz yeni veri kaydedilmemiş).";
       }
 
       _isSyncing = false;
