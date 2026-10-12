@@ -5,6 +5,7 @@ import '../models/fitness_models.dart';
 import '../models/user_profile.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
+import 'barcode_scanner_screen.dart';
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -532,10 +533,15 @@ class _NutritionScreenState extends State<NutritionScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: AppTheme.primary),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Barkod tarayıcı açılıyor...")),
+            tooltip: "Barkod Okuyucu",
+            onPressed: () async {
+              final detectedFood = await Navigator.push<FoodItem>(
+                context,
+                MaterialPageRoute(builder: (context) => const BarcodeScannerScreen()),
               );
+              if (detectedFood != null && mounted) {
+                _showGramPicker(detectedFood);
+              }
             },
           )
         ],

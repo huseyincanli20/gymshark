@@ -51,10 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.surfaceColor,
-              backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
-                  ? NetworkImage(profile.photoUrl!)
-                  : null,
-              child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+              backgroundImage: profile.avatarImage,
+              child: profile.avatarImage == null
                   ? const Icon(Icons.person, size: 18, color: AppTheme.primary)
                   : null,
             ),

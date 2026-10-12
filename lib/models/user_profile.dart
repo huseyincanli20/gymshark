@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class UserProfile extends ChangeNotifier {
@@ -28,13 +29,15 @@ class UserProfile extends ChangeNotifier {
   String heightUnit; // "cm" veya "inch"
   String energyUnit; // "kcal" veya "kJ"
 
-  // Profil Fotoğrafı (URL / Avatar)
+  // Profil Fotoğrafı (URL / Avatar / Cihazdan Yüklenen Fotoğraf Base64)
   String? photoUrl;
+  String? customPhotoBase64;
 
   UserProfile({
     this.name = 'Hüseyin Canlı',
     this.email = 'huseyin@gymtrack.com',
     this.photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    this.customPhotoBase64,
     this.isLoggedIn = false,
     this.workoutReminders = true,
     this.mealReminders = true,
@@ -57,6 +60,7 @@ class UserProfile extends ChangeNotifier {
     String? newName,
     String? newEmail,
     String? newPhotoUrl,
+    String? newCustomPhotoBase64,
     bool? newIsLoggedIn,
     double? newHeight,
     double? newWeight,
@@ -76,7 +80,13 @@ class UserProfile extends ChangeNotifier {
   }) {
     if (newName != null) name = newName;
     if (newEmail != null) email = newEmail;
-    if (newPhotoUrl != null) photoUrl = newPhotoUrl;
+    if (newPhotoUrl != null) {
+      photoUrl = newPhotoUrl;
+      customPhotoBase64 = null; // hazır avatar seçildiyse base64 temizlenir
+    }
+    if (newCustomPhotoBase64 != null) {
+      customPhotoBase64 = newCustomPhotoBase64;
+    }
     if (newIsLoggedIn != null) isLoggedIn = newIsLoggedIn;
     if (newHeight != null) heightCm = newHeight;
     if (newWeight != null) weightKg = newWeight;
@@ -94,6 +104,23 @@ class UserProfile extends ChangeNotifier {
     if (newMealReminders != null) mealReminders = newMealReminders;
     if (newWaterReminders != null) waterReminders = newWaterReminders;
     notifyListeners();
+  }
+
+  ImageProvider? get avatarImage {
+    if (customPhotoBase64 != null && customPhotoBase64!.isNotEmpty) {
+      try {
+        final pureBase64 = customPhotoBase64!.contains(',')
+            ? customPhotoBase64!.split(',').last
+            : customPhotoBase64!;
+        return MemoryImage(base64Decode(pureBase64));
+      } catch (_) {
+        // Hata durumunda photoUrl'ye düş
+      }
+    }
+    if (photoUrl != null && photoUrl!.isNotEmpty) {
+      return NetworkImage(photoUrl!);
+    }
+    return null;
   }
 }
 

@@ -1,3 +1,5 @@
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
@@ -229,10 +231,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       CircleAvatar(
                         radius: 36,
                         backgroundColor: AppTheme.primary.withOpacity(0.2),
-                        backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
-                            ? NetworkImage(profile.photoUrl!)
-                            : null,
-                        child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+                        backgroundImage: profile.avatarImage,
+                        child: profile.avatarImage == null
                             ? const Icon(Icons.person, size: 36, color: AppTheme.primary)
                             : null,
                       ),
@@ -641,6 +641,37 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  void _pickImageFromDevice() {
+    // Web ve mobil uyumlu dosya/fotoğraf seçici
+    final uploadInput = html.FileUploadInputElement()..accept = 'image/*';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((event) {
+      final files = uploadInput.files;
+      if (files != null && files.isNotEmpty) {
+        final reader = html.FileReader();
+        reader.readAsDataUrl(files[0]);
+        reader.onLoadEnd.listen((e) {
+          final result = reader.result as String?;
+          if (result != null && result.isNotEmpty) {
+            setState(() {
+              profile.updateProfile(newCustomPhotoBase64: result);
+            });
+            if (mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Telefonunuzdaki fotoğraf profil resmi yapıldı! 📸✨"),
+                  backgroundColor: AppTheme.accent,
+                ),
+              );
+            }
+          }
+        });
+      }
+    });
+  }
+
   void _showPhotoPickerModal() {
     final avatarList = [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
@@ -650,8 +681,6 @@ class _AccountScreenState extends State<AccountScreen> {
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
     ];
-
-    final urlController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -664,7 +693,7 @@ class _AccountScreenState extends State<AccountScreen> {
             left: 20,
             right: 20,
             top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -673,13 +702,44 @@ class _AccountScreenState extends State<AccountScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Profil Fotoğrafı Seç / Yükle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Text("Profil Fotoğrafı Seç", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
                 ],
               ),
-              const SizedBox(height: 12),
-              const Text("Hazır Sporcu Avatarlarından Seçin:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+
+              // Telefon Galerisinden Yükleme Butonu
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 3,
+                  ),
+                  icon: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 22),
+                  label: const Text(
+                    "Telefonumdaki Fotoğraflardan Seç",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  onPressed: _pickImageFromDevice,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              const Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.white12)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text("veya hazır avatarlardan seç", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                  ),
+                  Expanded(child: Divider(color: Colors.white12)),
+                ],
+              ),
+              const SizedBox(height: 16),
+
               SizedBox(
                 height: 80,
                 child: ListView.builder(
@@ -687,7 +747,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   itemCount: avatarList.length,
                   itemBuilder: (context, index) {
                     final photo = avatarList[index];
-                    final isCurrent = profile.photoUrl == photo;
+                    final isCurrent = profile.photoUrl == photo && (profile.customPhotoBase64 == null || profile.customPhotoBase64!.isEmpty);
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -716,45 +776,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text("Veya Kendi Fotoğraf Bağlantınızı (URL) Girin:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: urlController,
-                      decoration: InputDecoration(
-                        hintText: "https://... görsel bağlantısı",
-                        filled: true,
-                        fillColor: AppTheme.surfaceColor,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                    onPressed: () {
-                      final url = urlController.text.trim();
-                      if (url.isNotEmpty) {
-                        setState(() {
-                          profile.updateProfile(newPhotoUrl: url);
-                        });
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Fotoğrafınız başarıyla kaydedildi! 📸"), backgroundColor: AppTheme.accent),
-                        );
-                      }
-                    },
-                    child: const Text("Uygula", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
             ],
           ),
         );

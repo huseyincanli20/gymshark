@@ -43,10 +43,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppTheme.surfaceColor,
-                  backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
-                      ? NetworkImage(profile.photoUrl!)
-                      : null,
-                  child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+                  backgroundImage: profile.avatarImage,
+                  child: profile.avatarImage == null
                       ? Icon(
                           profile.isLoggedIn ? Icons.account_circle : Icons.account_circle_outlined,
                           size: 26,
