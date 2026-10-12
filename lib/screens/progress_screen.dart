@@ -13,6 +13,22 @@ class ProgressScreen extends StatefulWidget {
 
 class _ProgressScreenState extends State<ProgressScreen> {
   @override
+  void initState() {
+    super.initState();
+    UserSession.current.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    UserSession.current.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final profile = UserSession.current;
 
@@ -24,18 +40,27 @@ class _ProgressScreenState extends State<ProgressScreen> {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(
-                  profile.isLoggedIn ? Icons.account_circle : Icons.account_circle_outlined,
-                  size: 28,
-                  color: profile.isLoggedIn ? AppTheme.accent : AppTheme.textPrimary,
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppTheme.surfaceColor,
+                  backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
+                      ? NetworkImage(profile.photoUrl!)
+                      : null,
+                  child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+                      ? Icon(
+                          profile.isLoggedIn ? Icons.account_circle : Icons.account_circle_outlined,
+                          size: 26,
+                          color: profile.isLoggedIn ? AppTheme.accent : AppTheme.textPrimary,
+                        )
+                      : null,
                 ),
                 if (!profile.isLoggedIn)
                   Positioned(
-                    right: 0,
-                    top: 0,
+                    right: -2,
+                    top: -2,
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: 9,
+                      height: 9,
                       decoration: const BoxDecoration(
                         color: AppTheme.primary,
                         shape: BoxShape.circle,
@@ -106,6 +131,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 35,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             "${value.toInt()}",
@@ -117,13 +143,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
                           const weeks = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
-                          if (value.toInt() >= 0 && value.toInt() < weeks.length) {
+                          final intVal = value.toInt();
+                          if (value == intVal.toDouble() && intVal >= 0 && intVal < weeks.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
-                                weeks[value.toInt()],
+                                weeks[intVal],
                                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                               ),
                             );
