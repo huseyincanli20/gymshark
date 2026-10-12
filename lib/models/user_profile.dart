@@ -28,9 +28,13 @@ class UserProfile extends ChangeNotifier {
   String heightUnit; // "cm" veya "inch"
   String energyUnit; // "kcal" veya "kJ"
 
+  // Profil Fotoğrafı (URL / Avatar)
+  String? photoUrl;
+
   UserProfile({
     this.name = 'Hüseyin Canlı',
     this.email = 'huseyin@gymtrack.com',
+    this.photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
     this.isLoggedIn = false,
     this.workoutReminders = true,
     this.mealReminders = true,
@@ -52,6 +56,7 @@ class UserProfile extends ChangeNotifier {
   void updateProfile({
     String? newName,
     String? newEmail,
+    String? newPhotoUrl,
     bool? newIsLoggedIn,
     double? newHeight,
     double? newWeight,
@@ -71,6 +76,7 @@ class UserProfile extends ChangeNotifier {
   }) {
     if (newName != null) name = newName;
     if (newEmail != null) email = newEmail;
+    if (newPhotoUrl != null) photoUrl = newPhotoUrl;
     if (newIsLoggedIn != null) isLoggedIn = newIsLoggedIn;
     if (newHeight != null) heightCm = newHeight;
     if (newWeight != null) weightKg = newWeight;

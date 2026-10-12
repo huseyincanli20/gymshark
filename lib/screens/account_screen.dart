@@ -222,10 +222,34 @@ class _AccountScreenState extends State<AccountScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppTheme.primary.withOpacity(0.2),
-                  child: const Icon(Icons.person, size: 36, color: AppTheme.primary),
+                GestureDetector(
+                  onTap: _showPhotoPickerModal,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 36,
+                        backgroundColor: AppTheme.primary.withOpacity(0.2),
+                        backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
+                            ? NetworkImage(profile.photoUrl!)
+                            : null,
+                        child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+                            ? const Icon(Icons.person, size: 36, color: AppTheme.primary)
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -609,6 +633,127 @@ class _AccountScreenState extends State<AccountScreen> {
                     );
                   }).toList(),
                 ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPhotoPickerModal() {
+    final avatarList = [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+    ];
+
+    final urlController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Profil Fotoğrafı Seç / Yükle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text("Hazır Sporcu Avatarlarından Seçin:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 80,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: avatarList.length,
+                  itemBuilder: (context, index) {
+                    final photo = avatarList[index];
+                    final isCurrent = profile.photoUrl == photo;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          profile.updateProfile(newPhotoUrl: photo);
+                        });
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Profil fotoğrafınız güncellendi! 📸"), backgroundColor: AppTheme.accent),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isCurrent ? AppTheme.accent : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 32,
+                          backgroundImage: NetworkImage(photo),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text("Veya Kendi Fotoğraf Bağlantınızı (URL) Girin:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: urlController,
+                      decoration: InputDecoration(
+                        hintText: "https://... görsel bağlantısı",
+                        filled: true,
+                        fillColor: AppTheme.surfaceColor,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    onPressed: () {
+                      final url = urlController.text.trim();
+                      if (url.isNotEmpty) {
+                        setState(() {
+                          profile.updateProfile(newPhotoUrl: url);
+                        });
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Fotoğrafınız başarıyla kaydedildi! 📸"), backgroundColor: AppTheme.accent),
+                        );
+                      }
+                    },
+                    child: const Text("Uygula", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
             ],
           ),

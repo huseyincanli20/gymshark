@@ -7,11 +7,36 @@ import '../models/workout_manager.dart';
 import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'account_screen.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    UserSession.current.addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    UserSession.current.removeListener(_onProfileChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final profile = UserSession.current;
+
     return Scaffold(
       appBar: AppBar(
         title: const Column(
@@ -23,11 +48,24 @@ class HomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const CircleAvatar(
+            icon: CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'),
+              backgroundColor: AppTheme.surfaceColor,
+              backgroundImage: profile.photoUrl != null && profile.photoUrl!.isNotEmpty
+                  ? NetworkImage(profile.photoUrl!)
+                  : null,
+              child: (profile.photoUrl == null || profile.photoUrl!.isEmpty)
+                  ? const Icon(Icons.person, size: 18, color: AppTheme.primary)
+                  : null,
             ),
-            onPressed: () {},
+            tooltip: "Hesabım & Profil",
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountScreen()),
+              );
+              setState(() {});
+            },
           ),
           const SizedBox(width: 8),
         ],
