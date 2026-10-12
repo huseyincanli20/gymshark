@@ -137,8 +137,55 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Haftalık Aktivite", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text("4/${UserSession.current.weeklyWorkoutDays} Gün", style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
+                const Row(
+                  children: [
+                    Icon(Icons.calendar_month_rounded, color: AppTheme.accent, size: 20),
+                    SizedBox(width: 8),
+                    Text("Haftalık Aktivite", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "${profile.completedDaysThisWeek.length}/${profile.weeklyWorkoutDays} Gün",
+                      style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, size: 18, color: AppTheme.textSecondary),
+                      tooltip: "Haftalık Aktiviteyi Sıfırla",
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: AppTheme.cardColor,
+                            title: const Text("Aktiviteyi Sıfırla"),
+                            content: const Text("Haftalık antrenman aktivite geçmişini sıfırlamak istiyor musunuz?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("İptal"),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                onPressed: () {
+                                  profile.resetWeeklyActivity();
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Haftalık aktivite sıfırlandı. Yeni haftaya hazırsınız! 🔄")),
+                                  );
+                                },
+                                child: const Text("Sıfırla", style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -146,13 +193,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildDayItem("Pzt", true),
-                _buildDayItem("Sal", true),
-                _buildDayItem("Çar", false),
-                _buildDayItem("Per", true),
-                _buildDayItem("Cum", true),
-                _buildDayItem("Cmt", false),
-                _buildDayItem("Paz", false),
+                _buildDayItem("Pzt", 1, profile.completedDaysThisWeek.contains(1)),
+                _buildDayItem("Sal", 2, profile.completedDaysThisWeek.contains(2)),
+                _buildDayItem("Çar", 3, profile.completedDaysThisWeek.contains(3)),
+                _buildDayItem("Per", 4, profile.completedDaysThisWeek.contains(4)),
+                _buildDayItem("Cum", 5, profile.completedDaysThisWeek.contains(5)),
+                _buildDayItem("Cmt", 6, profile.completedDaysThisWeek.contains(6)),
+                _buildDayItem("Paz", 7, profile.completedDaysThisWeek.contains(7)),
               ],
             ),
 
@@ -303,24 +350,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDayItem(String day, bool isDone) {
+  Widget _buildDayItem(String day, int dayNumber, bool isDone) {
+    final isToday = DateTime.now().weekday == dayNumber;
     return Column(
       children: [
         Container(
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: isDone ? AppTheme.accent : AppTheme.surfaceColor,
+            color: isDone
+                ? AppTheme.accent
+                : (isToday ? AppTheme.primary.withOpacity(0.25) : AppTheme.surfaceColor),
             shape: BoxShape.circle,
+            border: isToday
+                ? Border.all(color: AppTheme.primary, width: 2)
+                : Border.all(color: Colors.transparent),
           ),
           child: Icon(
-            isDone ? Icons.check : Icons.circle,
-            color: isDone ? Colors.black : Colors.white24,
-            size: isDone ? 20 : 10,
+            isDone ? Icons.check : (isToday ? Icons.fitness_center : Icons.circle),
+            color: isDone ? Colors.black : (isToday ? AppTheme.primary : Colors.white24),
+            size: isDone ? 20 : (isToday ? 16 : 10),
           ),
         ),
         const SizedBox(height: 6),
-        Text(day, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        Text(
+          day,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+            color: isToday ? AppTheme.primary : AppTheme.textSecondary,
+          ),
+        ),
       ],
     );
   }

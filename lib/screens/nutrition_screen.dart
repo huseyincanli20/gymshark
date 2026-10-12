@@ -39,10 +39,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
   ];
 
   double get targetCalories => UserSession.current.dailyCalorieGoal;
-  // Hedef kaloriye göre dengeli protein (25%), karbonhidrat (50%), yağ (25%)
-  double get targetProtein => (targetCalories * 0.25) / 4;
-  double get targetCarbs => (targetCalories * 0.50) / 4;
-  double get targetFat => (targetCalories * 0.25) / 9;
+  // Sağlık ayrıntılarına (boy, kilo, yaş, cinsiyet) göre otomatik hesaplanan dinamik makrolar:
+  double get targetProtein => UserSession.current.targetProteinGrams;
+  double get targetCarbs => UserSession.current.targetCarbsGrams;
+  double get targetFat => UserSession.current.targetFatGrams;
 
   double get consumedCalories => _todayMeals.fold(0, (sum, m) => sum + m.totalCalories);
   double get consumedProtein => _todayMeals.fold(0, (sum, m) => sum + m.totalProtein);

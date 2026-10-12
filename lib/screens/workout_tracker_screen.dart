@@ -446,9 +446,49 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.check_circle, color: AppTheme.accent, size: 28),
+            tooltip: "Antrenmanı Kaydet & Tamamla",
             onPressed: () {
+              // 1. Haftalık aktiviteye bugünü kaydet
+              UserSession.current.logWorkoutForToday();
+
+              // 2. Tamamlanan setlerdeki ağırlıklardan kişisel rekorları (PR) güncelle
+              int newPrCount = 0;
+              for (final log in workoutManager.activeWorkout) {
+                final completedSets = log.sets.where((s) => s.isCompleted).toList();
+                if (completedSets.isNotEmpty) {
+                  // En yüksek ağırlıklı seti bul
+                  completedSets.sort((a, b) => b.weight.compareTo(a.weight));
+                  final bestSet = completedSets.first;
+
+                  // Mevcut PR var mı kontrol et
+                  final existingPr = UserSession.current.personalRecords.firstWhere(
+                    (p) => p.exerciseName.toLowerCase() == log.exercise.name.toLowerCase(),
+                    orElse: () => PersonalRecord(id: '', exerciseName: '', weight: 0, reps: 0, date: DateTime.now()),
+                  );
+
+                  if (existingPr.id.isEmpty || bestSet.weight > existingPr.weight) {
+                    UserSession.current.addOrUpdatePR(
+                      exerciseName: log.exercise.name,
+                      weight: bestSet.weight,
+                      reps: bestSet.reps,
+                    );
+                    newPrCount++;
+                  }
+                }
+              }
+
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Antrenman başarıyla tamamlandı ve kaydedildi! 🎉")),
+                SnackBar(
+                  content: Text(newPrCount > 0
+                      ? "Harika! Antrenman haftalık aktiviteye işlendi ve $newPrCount yeni PR kaydedildi! 🏆🔥"
+                      : "Antrenman başarıyla tamamlandı ve haftalık aktiviteye kaydedildi! 💪"),
+                  backgroundColor: AppTheme.accent,
+                  action: SnackBarAction(
+                    label: "Tamam",
+                    textColor: Colors.black,
+                    onPressed: () {},
+                  ),
+                ),
               );
             },
           )
