@@ -13,9 +13,9 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   bool _isRegisterMode = false;
-  final _nameController = TextEditingController(text: 'Hüseyin Canlı');
-  final _emailController = TextEditingController(text: 'huseyin@gymtrack.com');
-  final _passwordController = TextEditingController(text: '123456');
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   final profile = UserSession.current;
@@ -32,8 +32,21 @@ class _AccountScreenState extends State<AccountScreen> {
       return;
     }
 
-    // Kayıt modunda verileri özel bulut sağlayıcısına kaydet
+    // Kayıt modunda verileri özel bulut sağlayıcısına kaydet ve mükerrer kontrolü yap
     if (_isRegisterMode) {
+      final isAlreadyRegistered = await CloudAuthService.instance.isEmailAlreadyRegistered(email);
+      if (isAlreadyRegistered) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Bu e-posta adresi ile zaten bir hesap kayıtlı! Lütfen giriş yapın."),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
+
       await CloudAuthService.instance.registerUserToCloud(
         name: name.isNotEmpty ? name : 'Sporcu',
         email: email,
@@ -164,7 +177,14 @@ class _AccountScreenState extends State<AccountScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _isRegisterMode = false),
+                      onTap: () {
+                        setState(() {
+                          _isRegisterMode = false;
+                          _emailController.clear();
+                          _passwordController.clear();
+                          _nameController.clear();
+                        });
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -185,7 +205,14 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _isRegisterMode = true),
+                      onTap: () {
+                        setState(() {
+                          _isRegisterMode = true;
+                          _emailController.clear();
+                          _passwordController.clear();
+                          _nameController.clear();
+                        });
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -493,7 +520,40 @@ class _AccountScreenState extends State<AccountScreen> {
                     DropdownMenuItem(value: 'kJ', child: Text("Kilojoule (kJ)")),
                   ],
                   onChanged: (val) {
-                    if (val != null) setState(() => profile.energyUnit = val);
+                    if (val != null) {
+                      setState(() => profile.energyUnit = val);
+                      profile.saveToPrefs();
+                    }
+                  },
+                ),
+              ),
+              _buildDivider(),
+              ListTile(
+                leading: const Icon(Icons.language_rounded, color: AppTheme.accent),
+                title: const Text("Dil / Language"),
+                subtitle: Text(
+                  profile.language == 'en' ? "English (English)" : "Türkçe (Turkish)",
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+                trailing: DropdownButton<String>(
+                  value: profile.language,
+                  dropdownColor: AppTheme.cardColor,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 'tr', child: Text("🇹🇷 Türkçe (TR)")),
+                    DropdownMenuItem(value: 'en', child: Text("🇺🇸 English (EN)")),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => profile.language = val);
+                      profile.saveToPrefs();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(val == 'tr' ? "Dil Türkçe olarak güncellendi 🇹🇷" : "Language set to English 🇺🇸"),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                 ),
               ),

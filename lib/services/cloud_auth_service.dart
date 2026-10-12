@@ -126,6 +126,13 @@ class CloudAuthService {
     }
   }
 
+  /// E-posta adresinin daha önce kayıt olup olmadığını kontrol eder
+  Future<bool> isEmailAlreadyRegistered(String email) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final users = await getCloudRegisteredUsers();
+    return users.any((u) => u.email.trim().toLowerCase() == cleanEmail);
+  }
+
   /// Bulutta kayıtlı tüm kullanıcıları listeler (Admin / Yedekleme için)
   Future<List<CloudUserRecord>> getCloudRegisteredUsers() async {
     try {

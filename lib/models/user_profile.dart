@@ -60,10 +60,11 @@ class UserProfile extends ChangeNotifier {
   double dailyWaterGoalLiters;
   int weeklyWorkoutDays;
 
-  // Ölçü Birimleri
+  // Ölçü Birimleri & Dil
   String weightUnit; // "kg" veya "lbs"
   String heightUnit; // "cm" veya "inch"
   String energyUnit; // "kcal" veya "kJ"
+  String language;   // "tr" veya "en"
 
   // Profil Fotoğrafı (URL / Avatar / Cihazdan Yüklenen Fotoğraf Base64)
   String? photoUrl;
@@ -104,6 +105,7 @@ class UserProfile extends ChangeNotifier {
     this.weightUnit = 'kg',
     this.heightUnit = 'cm',
     this.energyUnit = 'kcal',
+    this.language = 'tr',
   }) {
     // Otomatik kalori ve makro hesapla
     _recalculateNutrition();
@@ -409,6 +411,10 @@ class UserProfile extends ChangeNotifier {
       await prefs.setDouble('todayBurnedCalories', todayBurnedCalories);
       await prefs.setInt('todaySteps', todaySteps);
       await prefs.setInt('stepGoal', stepGoal);
+      await prefs.setString('weightUnit', weightUnit);
+      await prefs.setString('heightUnit', heightUnit);
+      await prefs.setString('energyUnit', energyUnit);
+      await prefs.setString('language', language);
       await prefs.setStringList(
         'completedDaysThisWeek',
         completedDaysThisWeek.map((e) => e.toString()).toList(),
@@ -438,6 +444,10 @@ class UserProfile extends ChangeNotifier {
       todayBurnedCalories = prefs.getDouble('todayBurnedCalories') ?? todayBurnedCalories;
       todaySteps = prefs.getInt('todaySteps') ?? todaySteps;
       stepGoal = prefs.getInt('stepGoal') ?? stepGoal;
+      weightUnit = prefs.getString('weightUnit') ?? weightUnit;
+      heightUnit = prefs.getString('heightUnit') ?? heightUnit;
+      energyUnit = prefs.getString('energyUnit') ?? energyUnit;
+      language = prefs.getString('language') ?? language;
 
       final daysList = prefs.getStringList('completedDaysThisWeek');
       if (daysList != null) {
