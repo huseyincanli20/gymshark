@@ -292,6 +292,138 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
     );
   }
 
+  void _showChangeImageDialog(int exIndex) {
+    final log = workoutManager.activeWorkout[exIndex];
+    final sampleImages = [
+      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=500&q=80',
+    ];
+
+    final urlController = TextEditingController(text: log.customImageUrl ?? "");
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.cardColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "${log.exercise.name} - Görseli Değiştir",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                    ),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Text("Hazır Egzersiz Görsellerinden Seçin:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 85,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: sampleImages.length,
+                  itemBuilder: (context, index) {
+                    final img = sampleImages[index];
+                    final isCurrent = log.effectiveImageUrl == img;
+                    return GestureDetector(
+                      onTap: () {
+                        workoutManager.updateExerciseImage(exIndex, img);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("${log.exercise.name} görseli güncellendi! 🖼️"),
+                            backgroundColor: AppTheme.accent,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 90,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isCurrent ? AppTheme.accent : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Image.network(img, fit: BoxFit.cover),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text("Veya Kendi Görsel Linkinizi (URL) Yapıştırın:", style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: urlController,
+                      decoration: InputDecoration(
+                        hintText: "https://... görsel bağlantısı",
+                        filled: true,
+                        fillColor: AppTheme.surfaceColor,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    onPressed: () {
+                      final val = urlController.text.trim();
+                      if (val.isNotEmpty) {
+                        workoutManager.updateExerciseImage(exIndex, val);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("${log.exercise.name} özel görseli kaydedildi! 🖼️"),
+                            backgroundColor: AppTheme.accent,
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text("Uygula", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     workoutManager.removeListener(_onWorkoutChanged);
@@ -377,12 +509,55 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                               },
                               child: Row(
                                 children: [
-                                  Text(
-                                    log.exercise.name,
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  GestureDetector(
+                                    onTap: () => _showChangeImageDialog(exIndex),
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Image.network(
+                                            log.effectiveImageUrl,
+                                            width: 46,
+                                            height: 46,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Container(
+                                              width: 46,
+                                              height: 46,
+                                              color: AppTheme.surfaceColor,
+                                              child: const Icon(Icons.fitness_center, color: AppTheme.primary, size: 22),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: AppTheme.primary,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.edit, size: 10, color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  const Icon(Icons.info_outline, size: 18, color: AppTheme.textSecondary),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        log.exercise.name,
+                                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        log.exercise.muscleGroup.name.toUpperCase(),
+                                        style: const TextStyle(color: AppTheme.primary, fontSize: 11, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -395,6 +570,8 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                                   _showReplaceExerciseDialog(exIndex);
                                 } else if (value == 'edit_sets') {
                                   _showEditSetsDialog(exIndex);
+                                } else if (value == 'change_image') {
+                                  _showChangeImageDialog(exIndex);
                                 } else if (value == 'delete') {
                                   workoutManager.removeExercise(exIndex);
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -407,12 +584,12 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                               },
                               itemBuilder: (context) => [
                                 const PopupMenuItem(
-                                  value: 'replace',
+                                  value: 'change_image',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.swap_horiz_rounded, color: AppTheme.accent, size: 20),
+                                      Icon(Icons.image_outlined, color: AppTheme.accent, size: 20),
                                       SizedBox(width: 10),
-                                      Text("Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
+                                      Text("Görseli Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ),
@@ -423,6 +600,16 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                                       Icon(Icons.edit_note_rounded, color: AppTheme.primary, size: 20),
                                       SizedBox(width: 10),
                                       Text("Ağırlık & Set Düzenle", style: TextStyle(fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'replace',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.swap_horiz_rounded, color: Colors.amber, size: 20),
+                                      SizedBox(width: 10),
+                                      Text("Egzersizi Değiştir", style: TextStyle(fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ),

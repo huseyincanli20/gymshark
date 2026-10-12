@@ -63,6 +63,13 @@ class WorkoutManager extends ChangeNotifier {
     }
   }
 
+  void updateExerciseImage(int index, String imageUrl) {
+    if (index >= 0 && index < activeWorkout.length) {
+      activeWorkout[index].customImageUrl = imageUrl;
+      notifyListeners();
+    }
+  }
+
   void removeExercise(int index) {
     if (index >= 0 && index < activeWorkout.length) {
       activeWorkout.removeAt(index);

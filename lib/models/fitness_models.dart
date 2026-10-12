@@ -43,11 +43,18 @@ class WorkoutSet {
 class ActiveExerciseLog {
   final Exercise exercise;
   List<WorkoutSet> sets;
+  String? customImageUrl;
 
   ActiveExerciseLog({
     required this.exercise,
     required this.sets,
+    this.customImageUrl,
   });
+
+  String get effectiveImageUrl =>
+      (customImageUrl != null && customImageUrl!.isNotEmpty)
+          ? customImageUrl!
+          : exercise.thumbnailUrl;
 }
 
 class FoodItem {
