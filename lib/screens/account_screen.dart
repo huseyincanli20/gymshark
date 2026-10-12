@@ -1,8 +1,7 @@
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../theme/app_theme.dart';
+import '../utils/device_image_picker.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -642,32 +641,20 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   void _pickImageFromDevice() {
-    // Web ve mobil uyumlu dosya/fotoğraf seçici
-    final uploadInput = html.FileUploadInputElement()..accept = 'image/*';
-    uploadInput.click();
-
-    uploadInput.onChange.listen((event) {
-      final files = uploadInput.files;
-      if (files != null && files.isNotEmpty) {
-        final reader = html.FileReader();
-        reader.readAsDataUrl(files[0]);
-        reader.onLoadEnd.listen((e) {
-          final result = reader.result as String?;
-          if (result != null && result.isNotEmpty) {
-            setState(() {
-              profile.updateProfile(newCustomPhotoBase64: result);
-            });
-            if (mounted) {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Telefonunuzdaki fotoğraf profil resmi yapıldı! 📸✨"),
-                  backgroundColor: AppTheme.accent,
-                ),
-              );
-            }
-          }
+    pickDeviceImage((base64Result) {
+      if (base64Result.isNotEmpty) {
+        setState(() {
+          profile.updateProfile(newCustomPhotoBase64: base64Result);
         });
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Telefonunuzdaki fotoğraf profil resmi yapıldı! 📸✨"),
+              backgroundColor: AppTheme.accent,
+            ),
+          );
+        }
       }
     });
   }
