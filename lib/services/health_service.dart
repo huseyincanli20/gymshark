@@ -9,15 +9,13 @@ class HealthKitService {
 
   final Health _health = Health();
   bool _isConfigured = false;
-  bool _isAuthorized = false;
   bool _isSyncing = false;
   String? _lastSyncMessage;
 
   bool get isSyncing => _isSyncing;
-  bool get isAuthorized => _isAuthorized;
   String? get lastSyncMessage => _lastSyncMessage;
 
-  // Desteklenen sağlık veri tipleri
+  // Desteklenen sağlık veri tipleri: Adım ve Aktif Kalori
   final List<HealthDataType> _dataTypes = [
     HealthDataType.STEPS,
     HealthDataType.ACTIVE_ENERGY_BURNED,
@@ -53,7 +51,7 @@ class HealthKitService {
         _dataTypes,
         permissions: _permissions,
       );
-      _isAuthorized = granted;
+      debugPrint("requestAuthorization result: $granted");
       return granted;
     } catch (e) {
       debugPrint("Health requestAuthorization error: $e");
@@ -65,7 +63,6 @@ class HealthKitService {
   /// Canlı olarak bugünkü adım ve yakılan kalori verilerini çekip UserSession'a kaydeder
   Future<bool> syncTodayHealthData({bool requestIfNoAuth = true}) async {
     if (kIsWeb) {
-      // Web simülasyonu / mock senkronizasyon
       _lastSyncMessage = "Web ortamında HealthKit simüle edildi.";
       return false;
     }
@@ -76,12 +73,15 @@ class HealthKitService {
     try {
       await _ensureConfigured();
 
-      if (!_isAuthorized && requestIfNoAuth) {
-        final authorized = await requestPermissions();
-        if (!authorized) {
-          _isSyncing = false;
-          _lastSyncMessage = "Sağlık uygulaması erişim izni verilmedi.";
-          return false;
+      // Apple Health / Health Connect izin isteme diyaloğunu doğrudan tetikle
+      if (requestIfNoAuth) {
+        try {
+          await _health.requestAuthorization(
+            _dataTypes,
+            permissions: _permissions,
+          );
+        } catch (e) {
+          debugPrint("Health requestAuthorization prompt error: $e");
         }
       }
 
@@ -129,9 +129,11 @@ class HealthKitService {
         hasChanges = true;
       }
 
-      _lastSyncMessage = hasChanges
-          ? "Sağlık uygulamasından veriler güncellendi: $steps adım, ${burnedCalories.toInt()} kcal"
-          : "Bugün için henüz yeni sağlık verisi kaydedilmemiş.";
+      if (hasChanges) {
+        _lastSyncMessage = "Sağlık uygulamasından güncellendi: ${steps ?? 0} adım, ${burnedCalories.toInt()} kcal 🔥";
+      } else {
+        _lastSyncMessage = "Bağlantı kuruldu (Bugün için yeni veri bulunamadı).";
+      }
 
       _isSyncing = false;
       return true;
