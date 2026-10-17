@@ -471,6 +471,15 @@ class UserProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateBodyMeasurement(BodyMeasurement m) {
+    final idx = bodyMeasurements.indexWhere((item) => item.id == m.id);
+    if (idx != -1) {
+      bodyMeasurements[idx] = m;
+      saveToPrefs();
+      notifyListeners();
+    }
+  }
+
   void deleteBodyMeasurement(String id) {
     bodyMeasurements.removeWhere((m) => m.id == id);
     saveToPrefs();

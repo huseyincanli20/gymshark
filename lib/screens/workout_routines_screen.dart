@@ -181,15 +181,23 @@ class _WorkoutRoutinesScreenState extends State<WorkoutRoutinesScreen> {
 
             // Egzersiz Önizleme Listesi
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 8,
+              runSpacing: 8,
               children: exercises.take(4).map((ex) {
-                return Chip(
-                  backgroundColor: AppTheme.surfaceColor,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: -2),
-                  label: Text(
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                  ),
+                  child: Text(
                     ex.name,
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                 );
               }).toList(),

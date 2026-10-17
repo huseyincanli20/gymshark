@@ -165,11 +165,12 @@ class _AccountScreenState extends State<AccountScreen> {
             ? AppLocale.get('account_title')
             : (_isRegisterMode ? AppLocale.get('tab_register') : AppLocale.get('tab_login'))),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.dns_rounded, color: Colors.lightBlueAccent),
-            tooltip: "Hosting API Ayarı 🌐",
-            onPressed: _showHostingConfigDialog,
-          ),
+          if (profile.isAdmin)
+            IconButton(
+              icon: const Icon(Icons.dns_rounded, color: Colors.lightBlueAccent),
+              tooltip: "Hosting API Ayarı 🌐",
+              onPressed: _showHostingConfigDialog,
+            ),
           if (profile.isLoggedIn)
             IconButton(
               icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
@@ -1148,6 +1149,7 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   void _showHostingConfigDialog() async {
+    if (!profile.isAdmin) return;
     final currentUrl = await CloudAuthService.instance.getHostingUrl();
     final controller = TextEditingController(text: currentUrl);
     String? statusMessage;

@@ -11,6 +11,7 @@ class BodyMeasurement {
   final double thighCm;
   final double shouldersCm;
   final String note;
+  final String? photoBase64;
 
   BodyMeasurement({
     required this.id,
@@ -23,6 +24,7 @@ class BodyMeasurement {
     this.thighCm = 0.0,
     this.shouldersCm = 0.0,
     this.note = '',
+    this.photoBase64,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,6 +39,7 @@ class BodyMeasurement {
       'thighCm': thighCm,
       'shouldersCm': shouldersCm,
       'note': note,
+      'photoBase64': photoBase64,
     };
   }
 
@@ -52,6 +55,7 @@ class BodyMeasurement {
       thighCm: (map['thighCm'] as num?)?.toDouble() ?? 0.0,
       shouldersCm: (map['shouldersCm'] as num?)?.toDouble() ?? 0.0,
       note: map['note'] ?? '',
+      photoBase64: map['photoBase64'],
     );
   }
 
