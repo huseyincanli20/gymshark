@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // --- LÜTFEN AŞAĞIDAKİ BİLGİLERİ KENDİ HOSTINGİNİZE GÖRE DOLDURUN ---
 // ====================================================================
 $db_host = "localhost";                  // Hostinglerde genellikle 'localhost'tur.
-$db_name = "VERITABANI_ADINIZ";          // Örn: cpaneluser_gymtrack
-$db_user = "VERITABANI_KULLANICI_ADINIZ";// Örn: cpaneluser_dbuser
-$db_pass = "VERITABANI_SIFRENIZ";        // Veritabanı kullanıcısının şifresi
+$db_name = "ojubxqxxjl_gymtrack_db";          // Örn: cpaneluser_gymtrack
+$db_user = "ojubxqxxjl_gymtrack_user";// Örn: cpaneluser_dbuser
+$db_pass = "Ankara198198.";        // Veritabanı kullanıcısının şifresi
 
 try {
     $conn = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [

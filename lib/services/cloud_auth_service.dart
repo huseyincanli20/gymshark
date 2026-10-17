@@ -45,21 +45,22 @@ class CloudAuthService {
   static final CloudAuthService instance = CloudAuthService._();
   CloudAuthService._();
 
+  static const String _defaultHostingUrl = 'https://huseyincanli.com/api';
   static const String _defaultCloudEndpoint = 'https://api.gymtrack.cloud/v1/users';
   static const String _localCloudBackupKey = 'gymtrack_cloud_registered_users';
   static const String _customHostingUrlKey = 'gymtrack_custom_hosting_url';
 
   String? _cachedHostingUrl;
 
-  /// Kayıtlı özel hosting URL'sini döner (Örn: https://siteniz.com/api)
+  /// Kayıtlı özel hosting URL'sini döner (Varsayılan: https://huseyincanli.com/api)
   Future<String?> getHostingUrl() async {
     if (_cachedHostingUrl != null) return _cachedHostingUrl;
     try {
       final prefs = await SharedPreferences.getInstance();
-      _cachedHostingUrl = prefs.getString(_customHostingUrlKey);
+      _cachedHostingUrl = prefs.getString(_customHostingUrlKey) ?? _defaultHostingUrl;
       return _cachedHostingUrl;
     } catch (_) {
-      return null;
+      return _defaultHostingUrl;
     }
   }
 
