@@ -37,7 +37,7 @@ class _AccountScreenState extends State<AccountScreen> {
       return;
     }
 
-    // Kayıt modunda verileri özel bulut sağlayıcısına kaydet ve mükerrer kontrolü yap
+    // Kayıt modunda verileri özel bulut / hosting sağlayıcısına kaydet ve mükerrer kontrolü yap
     if (_isRegisterMode) {
       final isAlreadyRegistered = await CloudAuthService.instance.isEmailAlreadyRegistered(email);
       if (isAlreadyRegistered) {
@@ -52,18 +52,30 @@ class _AccountScreenState extends State<AccountScreen> {
         return;
       }
 
-      await CloudAuthService.instance.registerUserToCloud(
-        name: name.isNotEmpty ? name : 'Sporcu',
-        email: email,
-        password: password,
-        initialProfile: {
-          'heightCm': profile.heightCm,
-          'weightKg': profile.weightKg,
-          'gender': profile.gender,
-          'age': profile.age,
-          'targetWeightKg': profile.targetWeightKg,
-        },
-      );
+      try {
+        await CloudAuthService.instance.registerUserToCloud(
+          name: name.isNotEmpty ? name : 'Sporcu',
+          email: email,
+          password: password,
+          initialProfile: {
+            'heightCm': profile.heightCm,
+            'weightKg': profile.weightKg,
+            'gender': profile.gender,
+            'age': profile.age,
+            'targetWeightKg': profile.targetWeightKg,
+          },
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll("Exception: ", "")),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+        return;
+      }
     } else {
       // GİRİŞ YAP MODU: Şifre ve kimlik doğrulaması
       final verifiedUser = await CloudAuthService.instance.verifyCredentials(email, password);
@@ -148,12 +160,17 @@ class _AccountScreenState extends State<AccountScreen> {
             ? AppLocale.get('account_title')
             : (_isRegisterMode ? AppLocale.get('tab_register') : AppLocale.get('tab_login'))),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.dns_rounded, color: Colors.lightBlueAccent),
+            tooltip: "Hosting API Ayarı 🌐",
+            onPressed: _showHostingConfigDialog,
+          ),
           if (profile.isLoggedIn)
             IconButton(
               icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
               tooltip: AppLocale.get('logout'),
               onPressed: _handleLogout,
-            )
+            ),
         ],
       ),
       body: profile.isLoggedIn ? _buildProfileContent() : _buildLoginForm(),
@@ -723,6 +740,21 @@ class _AccountScreenState extends State<AccountScreen> {
                     );
                   },
                 ),
+                _buildDivider(),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlueAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.dns_rounded, color: Colors.lightBlueAccent),
+                  ),
+                  title: const Text("Özel Hosting & Veritabanı API'si", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  subtitle: const Text("Kullanıcı kayıt ve şifrelerinin saklanacağı sunucu adresi", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                  trailing: const Icon(Icons.settings, color: Colors.lightBlueAccent, size: 20),
+                  onTap: _showHostingConfigDialog,
+                ),
               ],
             ),
           ),
@@ -1101,6 +1133,169 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showHostingConfigDialog() async {
+    final currentUrl = await CloudAuthService.instance.getHostingUrl() ?? '';
+    final controller = TextEditingController(text: currentUrl);
+    String? statusMessage;
+    bool isTesting = false;
+    bool? testSuccess;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.dns_rounded, color: Colors.lightBlueAccent),
+              SizedBox(width: 8),
+              Text("Özel Hosting API", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Aldığınız web hostingteki 'api' klasörünün tam web adresini girin. Kullanıcı adları, e-postalar ve şifreler bu sunucudaki MySQL veritabanına kaydedilir.",
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: "Hosting API URL",
+                    hintText: "https://siteniz.com/api",
+                    hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+                    filled: true,
+                    fillColor: AppTheme.surfaceColor,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    prefixIcon: const Icon(Icons.link, size: 20, color: Colors.lightBlueAccent),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (statusMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: testSuccess == true
+                          ? Colors.greenAccent.withOpacity(0.15)
+                          : Colors.redAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: testSuccess == true ? Colors.greenAccent : Colors.redAccent,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          testSuccess == true ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                          size: 18,
+                          color: testSuccess == true ? Colors.greenAccent : Colors.redAccent,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            statusMessage!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: testSuccess == true ? Colors.greenAccent : Colors.redAccent,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.lightBlueAccent,
+                      side: const BorderSide(color: Colors.lightBlueAccent),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: isTesting
+                        ? null
+                        : () async {
+                            final inputUrl = controller.text.trim();
+                            if (inputUrl.isEmpty) {
+                              setDialogState(() {
+                                statusMessage = "Lütfen bir URL adresi girin.";
+                                testSuccess = false;
+                              });
+                              return;
+                            }
+                            setDialogState(() {
+                              isTesting = true;
+                              statusMessage = null;
+                            });
+                            final result = await CloudAuthService.instance.testHostingConnection(inputUrl);
+                            setDialogState(() {
+                              isTesting = false;
+                              testSuccess = result['success'] == true;
+                              statusMessage = result['message'];
+                            });
+                          },
+                    icon: isTesting
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.lightBlueAccent),
+                          )
+                        : const Icon(Icons.wifi_tethering_rounded, size: 18),
+                    label: Text(isTesting ? "Test Ediliyor..." : "Bağlantıyı Test Et"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final nav = Navigator.of(dialogCtx);
+                await CloudAuthService.instance.setHostingUrl(null);
+                nav.pop();
+                messenger.showSnackBar(
+                  const SnackBar(content: Text("Hosting adresi sıfırlandı. Yerel kasa devrede.")),
+                );
+              },
+              child: const Text("Sıfırla", style: TextStyle(color: Colors.redAccent)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final nav = Navigator.of(dialogCtx);
+                final url = controller.text.trim();
+                await CloudAuthService.instance.setHostingUrl(url.isEmpty ? null : url);
+                nav.pop();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(url.isEmpty
+                        ? "Hosting adresi kaldırıldı."
+                        : "Hosting adresi başarıyla kaydedildi! ($url) 🌐"),
+                    backgroundColor: AppTheme.accent,
+                  ),
+                );
+              },
+              child: const Text("Kaydet", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
