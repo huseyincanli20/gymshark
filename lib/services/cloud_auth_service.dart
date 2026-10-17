@@ -46,22 +46,26 @@ class CloudAuthService {
   CloudAuthService._();
 
   static const String _defaultHostingUrl = 'https://huseyincanli.com/api';
-  static const String _defaultCloudEndpoint = 'https://api.gymtrack.cloud/v1/users';
   static const String _localCloudBackupKey = 'gymtrack_cloud_registered_users';
   static const String _customHostingUrlKey = 'gymtrack_custom_hosting_url';
 
   String? _cachedHostingUrl;
 
   /// Kayıtlı özel hosting URL'sini döner (Varsayılan: https://huseyincanli.com/api)
-  Future<String?> getHostingUrl() async {
-    if (_cachedHostingUrl != null) return _cachedHostingUrl;
+  Future<String> getHostingUrl() async {
+    if (_cachedHostingUrl != null && _cachedHostingUrl!.isNotEmpty) {
+      return _cachedHostingUrl!;
+    }
     try {
       final prefs = await SharedPreferences.getInstance();
-      _cachedHostingUrl = prefs.getString(_customHostingUrlKey) ?? _defaultHostingUrl;
-      return _cachedHostingUrl;
-    } catch (_) {
-      return _defaultHostingUrl;
-    }
+      final saved = prefs.getString(_customHostingUrlKey);
+      if (saved != null && saved.trim().isNotEmpty) {
+        _cachedHostingUrl = saved.trim();
+        return _cachedHostingUrl!;
+      }
+    } catch (_) {}
+    _cachedHostingUrl = _defaultHostingUrl;
+    return _defaultHostingUrl;
   }
 
   /// Özel hosting URL'sini ayarlar veya temizler
@@ -70,7 +74,7 @@ class CloudAuthService {
       final prefs = await SharedPreferences.getInstance();
       if (url == null || url.trim().isEmpty) {
         await prefs.remove(_customHostingUrlKey);
-        _cachedHostingUrl = null;
+        _cachedHostingUrl = _defaultHostingUrl;
       } else {
         String clean = url.trim();
         if (clean.endsWith('/')) {
@@ -93,7 +97,7 @@ class CloudAuthService {
     final testUri = Uri.parse('$clean/test_connection.php');
 
     try {
-      final response = await http.get(testUri).timeout(const Duration(seconds: 6));
+      final response = await http.get(testUri).timeout(const Duration(seconds: 8));
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = jsonDecode(response.body);
         return {
@@ -118,87 +122,75 @@ class CloudAuthService {
     }
   }
 
-  /// Yeni kayıt olan kullanıcıyı özel hosting veya bulut sağlayıcısına kaydeder
+  /// Yeni kayıt olan kullanıcıyı doğrudan hosting MySQL veritabanına kaydeder
   Future<bool> registerUserToCloud({
     required String name,
     required String email,
     String? password,
     Map<String, dynamic>? initialProfile,
   }) async {
-    final now = DateTime.now().toIso8601String();
-    final userRecord = CloudUserRecord(
-      id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      email: email,
-      password: password ?? '',
-      createdAt: now,
-      metadata: {
-        'platform': defaultTargetPlatform.name,
-        'appVersion': '1.0.0',
-        'registeredAt': now,
-        if (initialProfile != null) ...initialProfile,
-      },
-    );
-
-    // 1. Cihaz yerel kasasına anında yaz
-    await _saveToLocalCloudVault(userRecord);
-
-    // 2. Kendi Hosting API'si varsa oraya POST et
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanName = name.trim().isNotEmpty ? name.trim() : 'Sporcu';
     final hostingUrl = await getHostingUrl();
-    if (hostingUrl != null && hostingUrl.isNotEmpty) {
-      try {
-        final regUri = Uri.parse('$hostingUrl/register.php');
-        final response = await http
-            .post(
-              regUri,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'name': name,
-                'email': email,
-                'password': password ?? '',
-                'metadata': userRecord.metadata,
-              }),
-            )
-            .timeout(const Duration(seconds: 6));
 
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          debugPrint("Hosting veritabanına başarıyla kaydedildi: $email");
-          return true;
-        } else if (response.statusCode == 409) {
-          throw Exception("Bu e-posta adresi ile hosting üzerinde zaten bir hesap kayıtlı!");
-        } else {
-          debugPrint("Hosting register yanıtı: ${response.statusCode} ${response.body}");
-        }
-      } catch (e) {
-        debugPrint("Hosting register hatası: $e");
-        if (e.toString().contains("zaten bir hesap kayıtlı")) {
-          rethrow;
-        }
-      }
-    } else {
-      // Varsayılan mock API çağrısı
-      try {
-        final response = await http
-            .post(
-              Uri.parse(_defaultCloudEndpoint),
-              headers: {
-                'Content-Type': 'application/json',
-                'X-GymTrack-Cloud-Key': 'gymtrack-secure-cloud-v1-token',
-              },
-              body: jsonEncode(userRecord.toJson()),
-            )
-            .timeout(const Duration(seconds: 4));
+    final now = DateTime.now().toIso8601String();
+    final metadata = {
+      'platform': defaultTargetPlatform.name,
+      'appVersion': '1.0.0',
+      'registeredAt': now,
+      if (initialProfile != null) ...initialProfile,
+    };
 
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          debugPrint("Bulut sağlayıcıya başarıyla kaydedildi: ${userRecord.email}");
-          return true;
-        }
-      } catch (e) {
-        debugPrint("Özel bulut sunucusuna anlık senkronizasyon (Local Vault devrede): $e");
+    try {
+      final regUri = Uri.parse('$hostingUrl/register.php');
+      final response = await http
+          .post(
+            regUri,
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'name': cleanName,
+              'email': cleanEmail,
+              'password': password ?? '',
+              'metadata': metadata,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      Map<String, dynamic>? data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {}
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final serverUserId = data?['user']?['id'] ?? 'usr_${DateTime.now().millisecondsSinceEpoch}';
+        final userRecord = CloudUserRecord(
+          id: serverUserId,
+          name: cleanName,
+          email: cleanEmail,
+          password: password ?? '',
+          createdAt: data?['user']?['createdAt'] ?? now,
+          metadata: metadata,
+        );
+        // Sadece sunucu kaydı başarılı olduktan sonra yerel kasaya ekle
+        await _saveToLocalCloudVault(userRecord);
+        debugPrint("Hosting veritabanına başarıyla kaydedildi: $cleanEmail");
+        return true;
+      } else if (response.statusCode == 409) {
+        final msg = data?['message'] ?? "Bu e-posta adresi ile hosting üzerinde zaten bir hesap kayıtlı! Lütfen giriş yapın.";
+        throw Exception(msg);
+      } else if (response.statusCode == 400) {
+        final msg = data?['message'] ?? "E-posta veya şifre bilgileri eksik veya geçersiz.";
+        throw Exception(msg);
+      } else {
+        final msg = data?['message'] ?? "Sunucu hatası (HTTP ${response.statusCode}). Lütfen tekrar deneyin.";
+        throw Exception(msg);
       }
+    } on Exception {
+      rethrow;
+    } catch (e) {
+      debugPrint("Hosting register bağlantı hatası: $e");
+      throw Exception("Hosting sunucusuna bağlanılamadı ($e). Lütfen internetinizi ve sunucu adresinizi kontrol edin.");
     }
-
-    return true;
   }
 
   /// Kayıtlı kullanıcıları yerel kasada yedekler
@@ -232,11 +224,27 @@ class CloudAuthService {
     }
   }
 
+  /// Belirli bir e-postayı yerel kasadan siler
+  Future<void> removeUserFromLocalVault(String email) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList(_localCloudBackupKey) ?? [];
+      final cleanEmail = email.trim().toLowerCase();
+      final updated = list.where((item) {
+        try {
+          final data = jsonDecode(item);
+          return (data['email'] ?? '').toString().trim().toLowerCase() != cleanEmail;
+        } catch (_) {
+          return true;
+        }
+      }).toList();
+      await prefs.setStringList(_localCloudBackupKey, updated);
+    } catch (_) {}
+  }
+
   /// E-posta adresinin daha önce kayıt olup olmadığını kontrol eder
   Future<bool> isEmailAlreadyRegistered(String email) async {
     final cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail == 'huseyincanli@gmail.com') return true;
-
     final users = await getCloudRegisteredUsers();
     return users.any((u) => u.email.trim().toLowerCase() == cleanEmail);
   }
@@ -246,62 +254,56 @@ class CloudAuthService {
     final cleanEmail = email.trim().toLowerCase();
 
     // 1. Yönetici Hesabı Doğrulaması (Hüseyin Canlı)
-    if (cleanEmail == 'huseyincanli@gmail.com') {
-      if (password == '15715799') {
-        return CloudUserRecord(
-          id: 'admin_usr_001',
-          name: 'Hüseyin Canlı',
-          email: 'huseyincanli@gmail.com',
-          password: '15715799',
-          createdAt: DateTime.now().toIso8601String(),
-          metadata: {'role': 'admin'},
-        );
-      } else {
+    if (cleanEmail == 'huseyincanli@gmail.com' && password == '15715799') {
+      return CloudUserRecord(
+        id: 'admin_usr_001',
+        name: 'Hüseyin Canlı',
+        email: 'huseyincanli@gmail.com',
+        password: '15715799',
+        createdAt: DateTime.now().toIso8601String(),
+        metadata: {'role': 'admin'},
+      );
+    }
+
+    // 2. Özel Hosting API Doğrulaması
+    final hostingUrl = await getHostingUrl();
+    try {
+      final loginUri = Uri.parse('$hostingUrl/login.php');
+      final response = await http
+          .post(
+            loginUri,
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'email': cleanEmail,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['user'] != null) {
+          final u = data['user'];
+          final record = CloudUserRecord(
+            id: u['id'] ?? 'usr_${DateTime.now().millisecondsSinceEpoch}',
+            name: u['name'] ?? 'Sporcu',
+            email: u['email'] ?? cleanEmail,
+            password: password,
+            createdAt: u['createdAt'] ?? DateTime.now().toIso8601String(),
+            metadata: u['metadata'] is Map<String, dynamic> ? u['metadata'] : {},
+          );
+          await _saveToLocalCloudVault(record);
+          return record;
+        }
+      } else if (response.statusCode == 401) {
+        // Hatalı şifre veya kayıtlı olmayan e-posta
         return null;
       }
+    } catch (e) {
+      debugPrint("Hosting login error: $e. Falling back to local vault.");
     }
 
-    // 2. Özel Hosting API Doğrulaması (Eğer Hosting URL Ayarlanmışsa)
-    final hostingUrl = await getHostingUrl();
-    if (hostingUrl != null && hostingUrl.isNotEmpty) {
-      try {
-        final loginUri = Uri.parse('$hostingUrl/login.php');
-        final response = await http
-            .post(
-              loginUri,
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'email': cleanEmail,
-                'password': password,
-              }),
-            )
-            .timeout(const Duration(seconds: 6));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          if (data['success'] == true && data['user'] != null) {
-            final u = data['user'];
-            final record = CloudUserRecord(
-              id: u['id'] ?? 'usr_${DateTime.now().millisecondsSinceEpoch}',
-              name: u['name'] ?? 'Sporcu',
-              email: u['email'] ?? cleanEmail,
-              password: password,
-              createdAt: u['createdAt'] ?? DateTime.now().toIso8601String(),
-              metadata: u['metadata'] is Map<String, dynamic> ? u['metadata'] : {},
-            );
-            await _saveToLocalCloudVault(record);
-            return record;
-          }
-        } else if (response.statusCode == 401) {
-          // Hatalı şifre veya kayıtlı olmayan e-posta
-          return null;
-        }
-      } catch (e) {
-        debugPrint("Hosting login error: $e. Falling back to local vault.");
-      }
-    }
-
-    // 3. Yerel Kasa / Çevrimdışı Doğrulama
+    // 3. Yerel Kasa / Çevrimdışı Doğrulama (İnternetsiz durumlar için)
     final users = await getCloudRegisteredUsers();
     for (final u in users) {
       if (u.email.trim().toLowerCase() == cleanEmail) {

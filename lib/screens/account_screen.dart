@@ -18,6 +18,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   bool _isRegisterMode = false;
+  bool _isLoading = false;
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -37,22 +38,20 @@ class _AccountScreenState extends State<AccountScreen> {
       return;
     }
 
-    // Kayıt modunda verileri özel bulut / hosting sağlayıcısına kaydet ve mükerrer kontrolü yap
-    if (_isRegisterMode) {
-      final isAlreadyRegistered = await CloudAuthService.instance.isEmailAlreadyRegistered(email);
-      if (isAlreadyRegistered) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Bu e-posta adresi ile zaten bir hesap kayıtlı! Lütfen giriş yapın."),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        }
-        return;
-      }
+    if (_isRegisterMode && password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Şifreniz en az 6 karakter olmalıdır."), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
 
-      try {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (_isRegisterMode) {
+        // Doğrudan sunucu veritabanına kaydet
         await CloudAuthService.instance.registerUserToCloud(
           name: name.isNotEmpty ? name : 'Sporcu',
           email: email,
@@ -65,59 +64,65 @@ class _AccountScreenState extends State<AccountScreen> {
             'targetWeightKg': profile.targetWeightKg,
           },
         );
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll("Exception: ", "")),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
+      } else {
+        // GİRİŞ YAP MODU: Şifre ve kimlik doğrulaması
+        final verifiedUser = await CloudAuthService.instance.verifyCredentials(email, password);
+        if (verifiedUser == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Hatalı e-posta veya şifre! Lütfen bilgilerinizi kontrol edin."),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return; // Hatalı şifrede kesinlikle giriş yapılması engellenir!
         }
-        return;
       }
-    } else {
-      // GİRİŞ YAP MODU: Şifre ve kimlik doğrulaması
-      final verifiedUser = await CloudAuthService.instance.verifyCredentials(email, password);
-      if (verifiedUser == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Hatalı e-posta veya şifre! Lütfen bilgilerinizi kontrol edin."),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+
+      // Yönetici (Admin) Kimlik Kontrolü
+      final isAdminCredentials = email.toLowerCase() == 'huseyincanli@gmail.com' && password == '15715799';
+
+      setState(() {
+        profile.isLoggedIn = true;
+        profile.email = email;
+        if (isAdminCredentials) {
+          profile.name = "Hüseyin Canlı";
+        } else if (_isRegisterMode && name.isNotEmpty) {
+          profile.name = name;
         }
-        return; // Hatalı şifrede kesinlikle giriş yapılması engellenir!
+      });
+      profile.saveToPrefs();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isAdminCredentials
+                ? "👑 Yönetici Girişi Başarılı! Hoş geldiniz Hüseyin Canlı (Egzersiz Düzenleme Yetkisi Aktif)"
+                : (_isRegisterMode 
+                    ? "Hesabınız başarıyla oluşturuldu ve veritabanına kaydedildi! 🚀" 
+                    : "Giriş başarılı! Hoş geldiniz 🎉")),
+            backgroundColor: isAdminCredentials ? Colors.amber.shade800 : AppTheme.accent,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
-    }
-
-    // Yönetici (Admin) Kimlik Kontrolü
-    final isAdminCredentials = email.toLowerCase() == 'huseyincanli@gmail.com' && password == '15715799';
-
-    setState(() {
-      profile.isLoggedIn = true;
-      profile.email = email;
-      if (isAdminCredentials) {
-        profile.name = "Hüseyin Canlı";
-      } else if (_isRegisterMode && name.isNotEmpty) {
-        profile.name = name;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll("Exception: ", "")),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
-    });
-    profile.saveToPrefs();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isAdminCredentials
-              ? "👑 Yönetici Girişi Başarılı! Hoş geldiniz Hüseyin Canlı (Egzersiz Düzenleme Yetkisi Aktif)"
-              : (_isRegisterMode 
-                  ? "Hesabınız özel buluta kaydedildi ve aktif edildi! ☁️🎉" 
-                  : "Giriş başarılı! Hoş geldiniz 🎉")),
-          backgroundColor: isAdminCredentials ? Colors.amber.shade800 : AppTheme.accent,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -331,11 +336,17 @@ class _AccountScreenState extends State<AccountScreen> {
                   backgroundColor: AppTheme.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: _handleAuthSubmit,
-                child: Text(
-                  _isRegisterMode ? AppLocale.get('btn_register') : AppLocale.get('btn_login'),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
+                onPressed: _isLoading ? null : _handleAuthSubmit,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                      )
+                    : Text(
+                        _isRegisterMode ? AppLocale.get('btn_register') : AppLocale.get('btn_login'),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
               ),
             ),
           ],
@@ -1137,7 +1148,7 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   void _showHostingConfigDialog() async {
-    final currentUrl = await CloudAuthService.instance.getHostingUrl() ?? '';
+    final currentUrl = await CloudAuthService.instance.getHostingUrl();
     final controller = TextEditingController(text: currentUrl);
     String? statusMessage;
     bool isTesting = false;

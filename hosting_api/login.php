@@ -8,7 +8,10 @@
 require_once 'db.php';
 
 // Gelen JSON verisini çöz
-$rawInput = file_get_contents("php://input");
+$rawInput = trim(file_get_contents("php://input"));
+if (substr($rawInput, 0, 3) === "\xEF\xBB\xBF") {
+    $rawInput = substr($rawInput, 3);
+}
 $input = json_decode($rawInput, true);
 
 if (!$input || !is_array($input)) {
