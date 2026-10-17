@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'db.php';
+header("Content-Type: text/html; charset=UTF-8");
 
 $admin_pass = "15715799";
 $admin_email = "huseyincanli@gmail.com";
