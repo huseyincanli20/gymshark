@@ -98,6 +98,72 @@ class AppLocale {
     'view_all': 'Tümünü Gör',
     'days_unit': 'Gün',
 
+    // Su Takibi
+    'water_tracker': 'Su Takibi & Hidrasyon',
+    'water_goal': 'Günlük Su Hedefi',
+    'water_add_200': '+200 ml',
+    'water_add_500': '+500 ml',
+    'water_add_1000': '+1 Litre',
+    'water_reset': 'Suyu Sıfırla',
+    'water_congrats': 'Harika! Günlük su hedefine ulaştın! 💧',
+
+    // Antrenman Programları & Rutinler
+    'routines_title': 'Programlar & Rutinler',
+    'start_routine': 'Bu Programı Başlat',
+    'create_routine': 'Yeni Rutin Oluştur',
+    'routine_category': 'Kategori',
+    'routine_duration': 'Süre',
+    'routine_level': 'Seviye',
+
+    // Akıllı Antrenman Araçları
+    'gym_tools_title': 'Akıllı Antrenman Araçları',
+    'plate_calc': 'Plaka Hesaplayıcı',
+    'one_rm_calc': '1RM & Yüzde Tablosu',
+    'hiit_timer': 'HIIT / Tabata Zamanlayıcı',
+    'barbell_weight': 'Bar Ağırlığı',
+    'target_total_weight': 'Hedef Toplam Ağırlık',
+    'each_side_plates': 'Her Yana Takılacak Plakalar',
+    'work': 'ÇALIŞ',
+    'rest': 'DİNLEN',
+    'prepare': 'HAZIRLAN',
+    'round': 'Tur',
+
+    // AI Koç
+    'ai_coach_title': 'GymTrack AI Kişisel Koç',
+    'ai_coach_subtitle': 'Kişiye Özel Antrenman & Diyet Planı',
+    'ai_generate_routine': 'AI ile Program Oluştur',
+    'ai_generate_diet': 'AI Günlük Yemek Planı',
+    'ai_quick_advice': 'AI Antrenör Tavsiyesi',
+    'apply_to_workout': 'Antrenmana Uygula',
+
+    // Başarı Rozetleri & Oyunlaştırma
+    'badges_title': 'Başarı Rozetleri',
+    'badges_subtitle': 'Antrenman ve Sağlık Başarıların',
+    'unlocked': 'Kazanıldı',
+    'locked': 'Kilitli',
+
+    // Mezura & Fotoğraf
+    'measurements_title': 'Mezura Ölçümleri',
+    'compare_photos_title': 'Önce & Sonra Fotoğraf',
+    'add_measurement': 'Yeni Ölçüm Ekle',
+    'chest_cm': 'Göğüs',
+    'arm_cm': 'Kol (Biceps)',
+    'waist_cm': 'Bel',
+    'hips_cm': 'Kalça',
+    'thigh_cm': 'Bacak (Uyluk)',
+    'shoulders_cm': 'Omuz',
+
+    // Sosyal Paylaşım Kartı & Tema
+    'share_workout_card': 'Instagram Story Kartı',
+    'share_card_title': 'Antrenman Özeti Kartı',
+    'lifetime_volume': 'Toplam Yaşam Boyu Tonaj',
+    'theme_selector': 'Uygulama Teması',
+    'theme_cyan': 'Neon Cyan (Varsayılan)',
+    'theme_red': 'Ateş Kırmızısı',
+    'theme_gold': 'Altın Şampiyon',
+    'theme_emerald': 'Zümrüt Yeşil',
+    'theme_purple': 'Siberpunk Mor',
+
     // Antrenman Ekranı
     'workout_title': 'Canlı Antrenman Takibi',
     'active_session': 'Aktif Antrenman Seansı',
@@ -246,6 +312,72 @@ class AppLocale {
     'popular_exercises': 'Popular Exercises',
     'view_all': 'View All',
     'days_unit': 'Days',
+
+    // Water Tracker
+    'water_tracker': 'Water Tracker & Hydration',
+    'water_goal': 'Daily Water Goal',
+    'water_add_200': '+200 ml',
+    'water_add_500': '+500 ml',
+    'water_add_1000': '+1 Liter',
+    'water_reset': 'Reset Water',
+    'water_congrats': 'Awesome! You reached your daily water goal! 💧',
+
+    // Workout Routines
+    'routines_title': 'Routines & Programs',
+    'start_routine': 'Start This Routine',
+    'create_routine': 'Create New Routine',
+    'routine_category': 'Category',
+    'routine_duration': 'Duration',
+    'routine_level': 'Level',
+
+    // Gym Tools
+    'gym_tools_title': 'Smart Gym Utilities',
+    'plate_calc': 'Plate Calculator',
+    'one_rm_calc': '1RM & Percentage Table',
+    'hiit_timer': 'HIIT / Tabata Timer',
+    'barbell_weight': 'Barbell Weight',
+    'target_total_weight': 'Target Total Weight',
+    'each_side_plates': 'Plates Per Side',
+    'work': 'WORK',
+    'rest': 'REST',
+    'prepare': 'PREPARE',
+    'round': 'Round',
+
+    // AI Coach
+    'ai_coach_title': 'GymTrack AI Personal Coach',
+    'ai_coach_subtitle': 'Custom Workout & Meal Guidance',
+    'ai_generate_routine': 'Generate Workout with AI',
+    'ai_generate_diet': 'AI Daily Meal Plan',
+    'ai_quick_advice': 'AI Trainer Advice',
+    'apply_to_workout': 'Apply to Workout',
+
+    // Badges & Gamification
+    'badges_title': 'Achievement Badges',
+    'badges_subtitle': 'Your Fitness & Health Milestones',
+    'unlocked': 'Unlocked',
+    'locked': 'Locked',
+
+    // Measurements & Photos
+    'measurements_title': 'Body Measurements',
+    'compare_photos_title': 'Before & After Comparison',
+    'add_measurement': 'Add New Measurement',
+    'chest_cm': 'Chest',
+    'arm_cm': 'Arm (Biceps)',
+    'waist_cm': 'Waist',
+    'hips_cm': 'Hips',
+    'thigh_cm': 'Thigh',
+    'shoulders_cm': 'Shoulders',
+
+    // Social Share Card & Theme
+    'share_workout_card': 'Instagram Story Card',
+    'share_card_title': 'Workout Summary Card',
+    'lifetime_volume': 'Lifetime Total Volume',
+    'theme_selector': 'App Theme',
+    'theme_cyan': 'Neon Cyan (Default)',
+    'theme_red': 'Crimson Red',
+    'theme_gold': 'Cyber Gold',
+    'theme_emerald': 'Fit Emerald',
+    'theme_purple': 'Neon Purple',
 
     // Workout Screen
     'workout_title': 'Live Workout Tracker',

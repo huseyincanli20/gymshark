@@ -6,6 +6,7 @@ import '../models/user_profile.dart';
 import '../services/exercise_repository.dart';
 import '../utils/app_locale.dart';
 import '../theme/app_theme.dart';
+import '../widgets/workout_share_dialog.dart';
 import 'exercise_detail_screen.dart';
 
 class WorkoutTrackerScreen extends StatefulWidget {
@@ -506,6 +507,8 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
 
               // Kullanıcının günlük yakılan kalorisine ekle
               UserSession.current.addBurnedCalories(burnedCalories);
+              // Toplam yaşam boyu tonaja ekle
+              UserSession.current.addLifetimeVolume(totalVolumeKg);
 
               showDialog(
                 context: context,
@@ -571,6 +574,26 @@ class _WorkoutTrackerScreenState extends State<WorkoutTrackerScreen> {
                     ],
                   ),
                   actions: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.share_rounded, color: AppTheme.accent, size: 18),
+                      label: Text(
+                        AppLocale.isEnglish ? 'Story Card' : 'Hikaye Kartı',
+                        style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        showDialog(
+                          context: context,
+                          builder: (context) => WorkoutShareDialog(
+                            workoutTitle: AppLocale.isEnglish ? "Live Workout Session" : "Canlı Antrenman Seansı",
+                            durationMinutes: 45,
+                            burnedCalories: burnedCalories.toInt(),
+                            totalVolumeKg: totalVolumeKg,
+                            newPrCount: newPrCount,
+                          ),
+                        );
+                      },
+                    ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primary,

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'body_measurement.dart';
+import 'achievement_models.dart';
+import 'routine_models.dart';
 
 class WeightLogEntry {
   final DateTime date;
@@ -84,6 +87,39 @@ class UserProfile extends ChangeNotifier {
   // Kişisel Rekorlar (PR) (Dinamik, Silinebilir ve Eklenebilir)
   List<PersonalRecord> personalRecords = [];
 
+  // Su Takibi
+  int todayWaterMl = 0;
+  int get waterGoalMl => (dailyWaterGoalLiters * 1000).round();
+  double get waterRatio => waterGoalMl > 0 ? (todayWaterMl / waterGoalMl).clamp(0.0, 1.0) : 0.0;
+
+  // Tema Rengi ('red', 'cyan', 'gold', 'emerald', 'purple')
+  String themeKey = 'cyan';
+
+  Color get themePrimary {
+    switch (themeKey) {
+      case 'red':
+        return const Color(0xFFFF5252);
+      case 'gold':
+        return const Color(0xFFFFD600);
+      case 'emerald':
+        return const Color(0xFF00E676);
+      case 'purple':
+        return const Color(0xFFE040FB);
+      case 'cyan':
+      default:
+        return const Color(0xFF00E5FF);
+    }
+  }
+
+  // Toplam Yaşam Boyu Kaldırılan Tonaj (kg)
+  double totalLifetimeVolumeKg = 0.0;
+
+  // Vücut Ölçüleri (Mezura)
+  List<BodyMeasurement> bodyMeasurements = [];
+
+  // Özel Şablonlar / Programlar
+  List<WorkoutRoutine> customRoutines = [];
+
   UserProfile({
     this.name = 'Hüseyin Canlı',
     this.email = 'huseyincanli@gmail.com',
@@ -106,6 +142,8 @@ class UserProfile extends ChangeNotifier {
     this.heightUnit = 'cm',
     this.energyUnit = 'kcal',
     this.language = 'tr',
+    this.themeKey = 'cyan',
+    this.todayWaterMl = 0,
   }) {
     // Otomatik kalori ve makro hesapla
     _recalculateNutrition();
@@ -399,6 +437,174 @@ class UserProfile extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- SU TAKİBİ YÖNETİMİ ---
+  void addWater(int ml) {
+    todayWaterMl = (todayWaterMl + ml).clamp(0, 10000);
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  void resetWater() {
+    todayWaterMl = 0;
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  // --- TEMA YÖNETİMİ ---
+  void setTheme(String newKey) {
+    themeKey = newKey;
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  // --- TOPLAM TONAJ YÖNETİMİ ---
+  void addLifetimeVolume(double volumeKg) {
+    totalLifetimeVolumeKg += volumeKg;
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  // --- VÜCUT ÖLÇÜLERİ (MEZURA) YÖNETİMİ ---
+  void addBodyMeasurement(BodyMeasurement m) {
+    bodyMeasurements.insert(0, m);
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  void deleteBodyMeasurement(String id) {
+    bodyMeasurements.removeWhere((m) => m.id == id);
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  // --- ÖZEL ANTRENMAN ŞABLONLARI YÖNETİMİ ---
+  void saveCustomRoutine(WorkoutRoutine routine) {
+    final idx = customRoutines.indexWhere((r) => r.id == routine.id);
+    if (idx != -1) {
+      customRoutines[idx] = routine;
+    } else {
+      customRoutines.add(routine);
+    }
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  void deleteCustomRoutine(String id) {
+    customRoutines.removeWhere((r) => r.id == id);
+    saveToPrefs();
+    notifyListeners();
+  }
+
+  // --- DİNAMİK ROZET VE OYUNLAŞTIRMA (GAMIFICATION) SİSTEMİ ---
+  List<AchievementBadge> get badges {
+    final isEn = language == 'en';
+    final highestPr = personalRecords.isNotEmpty
+        ? personalRecords.map((e) => e.weight).reduce((a, b) => a > b ? a : b)
+        : 0.0;
+    final totalPrCount = personalRecords.length;
+    final streak = completedDaysThisWeek.length;
+    final waterReached = todayWaterMl >= waterGoalMl && waterGoalMl > 0;
+
+    return [
+      AchievementBadge(
+        id: 'badge_first_workout',
+        titleTr: 'İlk Adım',
+        titleEn: 'First Step',
+        descTr: 'İlk antrenman seansını başarıyla tamamladın.',
+        descEn: 'Completed your very first workout session.',
+        iconEmoji: '👟',
+        isUnlocked: completedDaysThisWeek.isNotEmpty || totalLifetimeVolumeKg > 0,
+        progress: (completedDaysThisWeek.isNotEmpty || totalLifetimeVolumeKg > 0) ? 1.0 : 0.0,
+        progressText: (completedDaysThisWeek.isNotEmpty || totalLifetimeVolumeKg > 0) ? (isEn ? 'Unlocked' : 'Kazanıldı') : '0 / 1',
+        category: 'streak',
+      ),
+      AchievementBadge(
+        id: 'badge_100kg_club',
+        titleTr: '100 kg Kulübü',
+        titleEn: '100 kg Club',
+        descTr: 'Herhangi bir egzersizde 100 kg veya üzeri rekor kır.',
+        descEn: 'Achieve 100 kg or more in any exercise PR.',
+        iconEmoji: '🥇',
+        isUnlocked: highestPr >= 100.0,
+        progress: (highestPr / 100.0).clamp(0.0, 1.0),
+        progressText: '${highestPr.toInt()} / 100 kg',
+        category: 'strength',
+      ),
+      AchievementBadge(
+        id: 'badge_iron_will',
+        titleTr: 'Demir İrade (3 Gün Seri)',
+        titleEn: 'Iron Will (3-Day Streak)',
+        descTr: 'Bu hafta en az 3 gün antrenman yap.',
+        descEn: 'Train at least 3 days this week.',
+        iconEmoji: '🔥',
+        isUnlocked: streak >= 3,
+        progress: (streak / 3.0).clamp(0.0, 1.0),
+        progressText: '$streak / 3 ${isEn ? "Days" : "Gün"}',
+        category: 'streak',
+      ),
+      AchievementBadge(
+        id: 'badge_weekly_champ',
+        titleTr: 'Haftalık Şampiyon',
+        titleEn: 'Weekly Champion',
+        descTr: 'Haftalık antrenman hedefini ($weeklyWorkoutDays gün) eksiksiz tamamla.',
+        descEn: 'Hit your weekly workout target ($weeklyWorkoutDays days) completely.',
+        iconEmoji: '⚡',
+        isUnlocked: streak >= weeklyWorkoutDays && weeklyWorkoutDays > 0,
+        progress: weeklyWorkoutDays > 0 ? (streak / weeklyWorkoutDays).clamp(0.0, 1.0) : 0.0,
+        progressText: '$streak / $weeklyWorkoutDays',
+        category: 'streak',
+      ),
+      AchievementBadge(
+        id: 'badge_hydration_master',
+        titleTr: 'Hidrasyon Ustası',
+        titleEn: 'Hydration Master',
+        descTr: 'Günlük su tüketim hedefine (${(waterGoalMl / 1000).toStringAsFixed(1)}L) ulaş.',
+        descEn: 'Reach your daily water intake goal (${(waterGoalMl / 1000).toStringAsFixed(1)}L).',
+        iconEmoji: '💧',
+        isUnlocked: waterReached,
+        progress: waterRatio,
+        progressText: '$todayWaterMl / $waterGoalMl ml',
+        category: 'hydration',
+      ),
+      AchievementBadge(
+        id: 'badge_10_ton_volume',
+        titleTr: '10 Ton Tonaj Kulübü',
+        titleEn: '10-Ton Volume Club',
+        descTr: 'Antrenmanlarında kümülatif 10.000 kg ağırlık kaldır.',
+        descEn: 'Lift a cumulative 10,000 kg volume across your workouts.',
+        iconEmoji: '🏋️',
+        isUnlocked: totalLifetimeVolumeKg >= 10000,
+        progress: (totalLifetimeVolumeKg / 10000.0).clamp(0.0, 1.0),
+        progressText: '${totalLifetimeVolumeKg.toInt()} / 10,000 kg',
+        category: 'volume',
+      ),
+      AchievementBadge(
+        id: 'badge_record_collector',
+        titleTr: 'Rekor Avcısı',
+        titleEn: 'Record Hunter',
+        descTr: 'En az 5 farklı egzersizde kişisel rekor (PR) kaydet.',
+        descEn: 'Log personal records (PR) for at least 5 different exercises.',
+        iconEmoji: '🏆',
+        isUnlocked: totalPrCount >= 5,
+        progress: (totalPrCount / 5.0).clamp(0.0, 1.0),
+        progressText: '$totalPrCount / 5',
+        category: 'strength',
+      ),
+      AchievementBadge(
+        id: 'badge_body_metrics',
+        titleTr: 'Vücut Dedektifi',
+        titleEn: 'Body Detective',
+        descTr: 'En az bir kez mezura ile vücut ölçülerini kaydet.',
+        descEn: 'Log your body tape measurements at least once.',
+        iconEmoji: '📏',
+        isUnlocked: bodyMeasurements.isNotEmpty,
+        progress: bodyMeasurements.isNotEmpty ? 1.0 : 0.0,
+        progressText: bodyMeasurements.isNotEmpty ? (isEn ? 'Unlocked' : 'Kazanıldı') : '0 / 1',
+        category: 'general',
+      ),
+    ];
+  }
+
   // --- KALICI VERİ SAKLAMA (SharedPreferences) ---
   Future<void> saveToPrefs() async {
     try {
@@ -428,10 +634,19 @@ class UserProfile extends ChangeNotifier {
       await prefs.setString('heightUnit', heightUnit);
       await prefs.setString('energyUnit', energyUnit);
       await prefs.setString('language', language);
+      await prefs.setInt('todayWaterMl', todayWaterMl);
+      await prefs.setString('themeKey', themeKey);
+      await prefs.setDouble('totalLifetimeVolumeKg', totalLifetimeVolumeKg);
       await prefs.setStringList(
         'completedDaysThisWeek',
         completedDaysThisWeek.map((e) => e.toString()).toList(),
       );
+      // Vücut ölçüleri kaydet
+      final measurementsJson = bodyMeasurements.map((m) => m.toJson()).toList();
+      await prefs.setStringList('bodyMeasurements', measurementsJson);
+      // Özel rutinleri kaydet
+      final routinesJson = customRoutines.map((r) => r.toJson()).toList();
+      await prefs.setStringList('customRoutines', routinesJson);
     } catch (_) {
       // Hata durumunda sessizce devam et
     }
@@ -461,10 +676,23 @@ class UserProfile extends ChangeNotifier {
       heightUnit = prefs.getString('heightUnit') ?? heightUnit;
       energyUnit = prefs.getString('energyUnit') ?? energyUnit;
       language = prefs.getString('language') ?? language;
+      todayWaterMl = prefs.getInt('todayWaterMl') ?? todayWaterMl;
+      themeKey = prefs.getString('themeKey') ?? themeKey;
+      totalLifetimeVolumeKg = prefs.getDouble('totalLifetimeVolumeKg') ?? totalLifetimeVolumeKg;
 
       final daysList = prefs.getStringList('completedDaysThisWeek');
       if (daysList != null) {
         completedDaysThisWeek = daysList.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toSet();
+      }
+
+      final measurementsList = prefs.getStringList('bodyMeasurements');
+      if (measurementsList != null) {
+        bodyMeasurements = measurementsList.map((str) => BodyMeasurement.fromJson(str)).toList();
+      }
+
+      final routinesList = prefs.getStringList('customRoutines');
+      if (routinesList != null) {
+        customRoutines = routinesList.map((str) => WorkoutRoutine.fromJson(str)).toList();
       }
 
       _recalculateNutrition();

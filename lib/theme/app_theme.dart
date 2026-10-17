@@ -14,14 +14,31 @@ class AppTheme {
   static const Color carbColor = Color(0xFFFFB300);
   static const Color fatColor = Color(0xFF29B6F6);
 
-  static ThemeData get darkTheme {
+  static Color getPrimaryFor(String themeKey) {
+    switch (themeKey) {
+      case 'red':
+        return const Color(0xFFFF5252);
+      case 'gold':
+        return const Color(0xFFFFD600);
+      case 'emerald':
+        return const Color(0xFF00E676);
+      case 'purple':
+        return const Color(0xFFE040FB);
+      case 'cyan':
+      default:
+        return const Color(0xFF00E5FF);
+    }
+  }
+
+  static ThemeData getDarkTheme([String themeKey = 'cyan']) {
+    final activePrimary = getPrimaryFor(themeKey);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: background,
-      primaryColor: primary,
-      colorScheme: const ColorScheme.dark(
-        primary: primary,
+      primaryColor: activePrimary,
+      colorScheme: ColorScheme.dark(
+        primary: activePrimary,
         secondary: accent,
         surface: cardColor,
       ),
@@ -48,13 +65,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: cardColor,
-        selectedItemColor: primary,
+        selectedItemColor: activePrimary,
         unselectedItemColor: textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
     );
   }
+
+  static ThemeData get darkTheme => getDarkTheme('cyan');
 }

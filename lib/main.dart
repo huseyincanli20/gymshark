@@ -21,11 +21,16 @@ class GymTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GymTrack',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: const MainNavigationScreen(),
+    return ListenableBuilder(
+      listenable: UserSession.current,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'GymTrack',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.getDarkTheme(UserSession.current.themeKey),
+          home: const MainNavigationScreen(),
+        );
+      },
     );
   }
 }

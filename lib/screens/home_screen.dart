@@ -9,8 +9,12 @@ import 'workout_tracker_screen.dart';
 import 'exercise_detail_screen.dart';
 import 'all_exercises_screen.dart';
 import '../services/health_service.dart';
-
 import 'account_screen.dart';
+import 'workout_routines_screen.dart';
+import 'gym_tools_screen.dart';
+import 'ai_coach_screen.dart';
+import 'achievements_screen.dart';
+import 'measurements_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -165,6 +169,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             const SizedBox(height: 18),
+
+            // HIZLI ERİŞİM MERKEZİ (Programlar, Gym Araçları, AI Koç, Rozetler, Mezura)
+            _buildFeatureHub(),
+
+            const SizedBox(height: 20),
 
             // GÜNLÜK YAKILAN KALORİ & GÜNLÜK ADIM SAYAR PENCERESİ
             Row(
@@ -366,6 +375,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+
+            const SizedBox(height: 18),
+
+            // İNTERAKTİF SU TAKİBİ VE HİDRASYON KARTI
+            _buildWaterTrackerCard(profile),
 
             const SizedBox(height: 24),
 
@@ -728,6 +742,246 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFeatureHub() {
+    final items = [
+      {
+        'title': AppLocale.isEnglish ? 'Routines' : 'Programlar',
+        'icon': Icons.splitscreen_rounded,
+        'color': const Color(0xFF00E5FF),
+        'screen': const WorkoutRoutinesScreen(),
+      },
+      {
+        'title': AppLocale.isEnglish ? 'Gym Tools' : 'Gym Araçları',
+        'icon': Icons.calculate_rounded,
+        'color': const Color(0xFFFF9100),
+        'screen': const GymToolsScreen(),
+      },
+      {
+        'title': AppLocale.isEnglish ? 'AI Coach' : 'AI Koç',
+        'icon': Icons.smart_toy_rounded,
+        'color': const Color(0xFFD500F9),
+        'screen': const AiCoachScreen(),
+      },
+      {
+        'title': AppLocale.isEnglish ? 'Badges' : 'Rozetler',
+        'icon': Icons.military_tech_rounded,
+        'color': const Color(0xFFFFD700),
+        'screen': const AchievementsScreen(),
+      },
+      {
+        'title': AppLocale.isEnglish ? 'Body Stats' : 'Mezura & Foto',
+        'icon': Icons.straighten_rounded,
+        'color': const Color(0xFF00E676),
+        'screen': const MeasurementsScreen(),
+      },
+    ];
+
+    return SizedBox(
+      height: 94,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, i) {
+          final item = items[i];
+          final color = item['color'] as Color;
+          return InkWell(
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => item['screen'] as Widget),
+              );
+              if (mounted) setState(() {});
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 86,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: color.withOpacity(0.35)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(item['icon'] as IconData, color: color, size: 22),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item['title'] as String,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWaterTrackerCard(UserProfile profile) {
+    final waterMl = profile.todayWaterMl;
+    final goalMl = (profile.dailyWaterGoalLiters * 1000).toInt();
+    final progress = goalMl > 0 ? (waterMl / goalMl).clamp(0.0, 1.0) : 0.0;
+    final isCompleted = waterMl >= goalMl && goalMl > 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isCompleted ? Colors.lightBlueAccent : Colors.lightBlueAccent.withOpacity(0.3),
+          width: isCompleted ? 1.5 : 1,
+        ),
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.cardColor,
+            Colors.lightBlueAccent.withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlueAccent.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.water_drop_rounded, color: Colors.lightBlueAccent, size: 22),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocale.get('water_tracker'),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        "$waterMl / $goalMl ml (${(progress * 100).toInt()}%)",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isCompleted ? Colors.lightBlueAccent : AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, size: 20, color: AppTheme.textSecondary),
+                tooltip: AppLocale.get('water_reset'),
+                onPressed: () {
+                  profile.resetWater();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocale.isEnglish ? "Water log reset 🔄" : "Su kaydı sıfırlandı 🔄"),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppTheme.surfaceColor,
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.lightBlueAccent),
+              minHeight: 8,
+            ),
+          ),
+          if (isCompleted) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.lightBlueAccent, size: 16),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    AppLocale.get('water_congrats'),
+                    style: const TextStyle(fontSize: 11, color: Colors.lightBlueAccent, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.lightBlueAccent,
+                    side: BorderSide(color: Colors.lightBlueAccent.withOpacity(0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onPressed: () => profile.addWater(200),
+                  child: Text(AppLocale.get('water_add_200'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.lightBlueAccent,
+                    side: BorderSide(color: Colors.lightBlueAccent.withOpacity(0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onPressed: () => profile.addWater(500),
+                  child: Text(AppLocale.get('water_add_500'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlueAccent,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  onPressed: () => profile.addWater(1000),
+                  child: Text(AppLocale.get('water_add_1000'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

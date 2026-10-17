@@ -6,6 +6,8 @@ import '../services/cloud_auth_service.dart';
 import '../utils/app_locale.dart';
 import 'exercise_edit_dialog.dart';
 import 'exercise_web_sync_modal.dart';
+import 'achievements_screen.dart';
+import 'measurements_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -590,10 +592,90 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ),
 
+        const SizedBox(height: 20),
+
+        // 5. UYGULAMA TEMASI & VURGU RENGİ
+        _buildSectionHeader(AppLocale.get('theme_selector'), Icons.palette_rounded, AppTheme.getPrimaryFor(profile.themeKey)),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocale.isEnglish ? "Choose accent color" : "Uygulama vurgu rengini seçin",
+                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildThemeOption('cyan', const Color(0xFF00E5FF), 'Cyan'),
+                    _buildThemeOption('red', const Color(0xFFFF3B30), 'Red'),
+                    _buildThemeOption('gold', const Color(0xFFFFD700), 'Gold'),
+                    _buildThemeOption('emerald', const Color(0xFF00E676), 'Emerald'),
+                    _buildThemeOption('purple', const Color(0xFFD500F9), 'Purple'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 6. BAŞARI ROZETLERİ & MEZURA TAKİBİ
+        _buildSectionHeader(AppLocale.isEnglish ? "Milestones & Measurements" : "Başarılar & Vücut Takibi", Icons.military_tech_rounded, Colors.amber),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.military_tech_rounded, color: Colors.amber),
+                ),
+                title: Text(AppLocale.get('badges_title'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle: Text(AppLocale.get('badges_subtitle'), style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textSecondary),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AchievementsScreen()),
+                  );
+                },
+              ),
+              _buildDivider(),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E676).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.straighten_rounded, color: Color(0xFF00E676)),
+                ),
+                title: Text(AppLocale.get('measurements_title'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                subtitle: Text(AppLocale.get('compare_photos_title'), style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                trailing: const Icon(Icons.chevron_right, size: 20, color: AppTheme.textSecondary),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MeasurementsScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+
         if (profile.isAdmin) ...[
           const SizedBox(height: 20),
 
-          // 5. EGZERSİZLER & İNTERNET SENKRONİZASYONU (SADECE YÖNETİCİYE ÖZEL)
+          // 7. EGZERSİZLER & İNTERNET SENKRONİZASYONU (SADECE YÖNETİCİYE ÖZEL)
           _buildSectionHeader(AppLocale.get('sec_exercise_mgmt'), Icons.admin_panel_settings_rounded, Colors.amber),
           Card(
             shape: RoundedRectangleBorder(
@@ -699,6 +781,54 @@ class _AccountScreenState extends State<AccountScreen> {
 
         const SizedBox(height: 40),
       ],
+    );
+  }
+
+  Widget _buildThemeOption(String key, Color color, String name) {
+    final isSelected = profile.themeKey == key;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          profile.setTheme(key);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocale.isEnglish ? "Theme updated to $name 🎨" : "Tema $name olarak ayarlandı! 🎨"),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.white : Colors.transparent,
+                width: 2.5,
+              ),
+            ),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: color,
+              child: isSelected
+                  ? const Icon(Icons.check, color: Colors.black, size: 18)
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
