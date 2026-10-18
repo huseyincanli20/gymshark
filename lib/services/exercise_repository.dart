@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/fitness_models.dart';
 import '../data/mock_data.dart';
+import 'cloud_auth_service.dart';
 
 /// Egzersizleri ve hareket formlarını (talimatlar, ipuçları, hareketli GIF ve görseller)
 /// hem internet sitesi / bulut API üzerinden hem de cihaz içi dinamik depolamada yöneten servis.
@@ -15,7 +16,7 @@ class ExerciseRepository extends ChangeNotifier {
   static const String _cloudExercisesUrlKey = 'gymtrack_remote_exercises_api_endpoint';
   
   // Varsayılan API / İnternet üzerinden JSON veya GIF çekeceği endpoint (kullanıcı değiştirebilir veya özel web sitesine bağlayabilir)
-  String _remoteApiEndpoint = 'https://api.gymtrack.cloud/v1/exercises';
+  String _remoteApiEndpoint = 'https://huseyincanli.com/api/get_content.php?type=exercises';
 
   List<Exercise> _exercises = [];
   bool _isInitialized = false;
@@ -28,7 +29,9 @@ class ExerciseRepository extends ChangeNotifier {
     if (_isInitialized) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      _remoteApiEndpoint = prefs.getString(_cloudExercisesUrlKey) ?? _remoteApiEndpoint;
+      final hostingBase = await CloudAuthService.instance.getHostingUrl();
+      final defaultEndpoint = '$hostingBase/get_content.php?type=exercises';
+      _remoteApiEndpoint = prefs.getString(_cloudExercisesUrlKey) ?? defaultEndpoint;
       final savedData = prefs.getString(_storageKey);
 
       if (savedData != null && savedData.isNotEmpty) {
@@ -45,6 +48,9 @@ class ExerciseRepository extends ChangeNotifier {
     }
     _isInitialized = true;
     notifyListeners();
+
+    // Hosting veritabanından güncel egzersizleri ve GIF'leri çek
+    syncFromWeb();
   }
 
   /// Uzak API adresini günceller
@@ -57,9 +63,15 @@ class ExerciseRepository extends ChangeNotifier {
 
   /// İnternet sitesinden / Web API'den güncel egzersiz listesini ve GIF'leri çeker
   Future<bool> syncFromWeb({String? customUrl}) async {
-    final urlToUse = customUrl?.trim() ?? _remoteApiEndpoint;
+    String urlToUse = customUrl?.trim() ?? _remoteApiEndpoint;
+    if (customUrl == null) {
+      try {
+        final hostingBase = await CloudAuthService.instance.getHostingUrl();
+        urlToUse = '$hostingBase/get_content.php?type=exercises';
+      } catch (_) {}
+    }
     try {
-      final response = await http.get(Uri.parse(urlToUse)).timeout(const Duration(seconds: 6));
+      final response = await http.get(Uri.parse(urlToUse)).timeout(const Duration(seconds: 7));
       if (response.statusCode == 200) {
         final dynamic decoded = jsonDecode(response.body);
         List<dynamic> items;

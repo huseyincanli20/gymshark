@@ -116,6 +116,7 @@ class FoodItem {
   final double carbs;    // gram
   final double fat;      // gram
   final String category; // Et/Tavuk, Bakliyat, Meyve vs.
+  final String imageUrl; // Fotoğraf veya görsel URL
 
   FoodItem({
     required this.id,
@@ -125,7 +126,54 @@ class FoodItem {
     required this.carbs,
     required this.fat,
     required this.category,
+    this.imageUrl = '',
   });
+
+  FoodItem copyWith({
+    String? id,
+    String? name,
+    double? calories,
+    double? protein,
+    double? carbs,
+    double? fat,
+    String? category,
+    String? imageUrl,
+  }) {
+    return FoodItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      calories: calories ?? this.calories,
+      protein: protein ?? this.protein,
+      carbs: carbs ?? this.carbs,
+      fat: fat ?? this.fat,
+      category: category ?? this.category,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'calories': calories,
+    'protein': protein,
+    'carbs': carbs,
+    'fat': fat,
+    'category': category,
+    'imageUrl': imageUrl,
+  };
+
+  factory FoodItem.fromJson(Map<String, dynamic> json) {
+    return FoodItem(
+      id: (json['id'] ?? json['food_id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      calories: (json['calories'] as num?)?.toDouble() ?? 0.0,
+      protein: (json['protein'] as num?)?.toDouble() ?? 0.0,
+      carbs: (json['carbs'] as num?)?.toDouble() ?? 0.0,
+      fat: (json['fat'] as num?)?.toDouble() ?? 0.0,
+      category: (json['category'] ?? 'Genel').toString(),
+      imageUrl: (json['imageUrl'] ?? json['image_url'] ?? '').toString(),
+    );
+  }
 }
 
 class LoggedMeal {

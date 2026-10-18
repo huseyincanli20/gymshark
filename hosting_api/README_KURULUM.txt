@@ -1,67 +1,40 @@
 ====================================================================
-GYMTRACK - HOSTING & VERİTABANI KURULUM REHBERİ (ADIM ADIM)
+GYMTRACK - HOSTING CMS & VERİTABANI YÖNETİM REHBERİ
 ====================================================================
 
-Bu rehber, GymTrack uygulamasındaki üye kayıtlarını ve şifreleri kendi
-aldığınız web hosting hizmetindeki MySQL veritabanına kaydetmeniz için
-hazırlanmıştır.
+Bu sistem ile GymTrack mobil ve web uygulamasının içindeki tüm önemli verileri:
+1. Antrenman Programları ve içerikleri (PPL, Upper/Lower, 5x5, Süre, Setler, Tekrarlar)
+2. Egzersizler, Hareket Formları, İpuçları ve Canlı Hareketli GIF'ler
+3. Besinler, Kaloriler, Protein / Karbonhidrat / Yağ makroları ve Yemek Görselleri
+4. Kayıtlı Üyeler ve Hesap Güvenliği
+
+doğrudan web tarayıcınızdan (https://huseyincanli.com/api/admin.php) veya
+phpMyAdmin veritabanınız üzerinden anlık olarak değiştirmenizi sağlar.
+Değiştirdiğiniz her veri, uygulamayı kullanan tüm üyelerin ekranına otomatik yansır!
 
 --------------------------------------------------------------------
-ADIM 1: Veritabanı ve Kullanıcı Oluşturma (cPanel / Plesk)
+DOSYALAR VE GÖREVLERİ (hosting_api klasörü)
 --------------------------------------------------------------------
-1. Hosting kontrol panelinize (cPanel veya Plesk) giriş yapın.
-2. "MySQL Veritabanları" (MySQL Databases) bölümüne gidin.
-3. Yeni bir veritabanı oluşturun (Örn: `gymtrack_db`).
-4. Yeni bir MySQL kullanıcısı oluşturun (Örn: `gymtrack_user`) ve güçlü bir şifre belirleyin.
-5. "Veritabanına Kullanıcı Ekle" bölümünden oluşturduğunuz kullanıcıyı veritabanına ekleyin ve "TÜM AYRICALIKLAR" (ALL PRIVILEGES) seçeneğini işaretleyip kaydedin.
+1. `admin.php`: Web tabanlı Yönetici & CMS Paneli. (Sekmeler: Üyeler, Antrenmanlar, Egzersizler & GIF'ler, Besinler & Kalori, Veritabanı)
+2. `get_content.php`: Uygulamanın veritabanından güncel antrenman, egzersiz ve besinleri çektiği yüksek hızlı JSON API.
+3. `init_tables.php`: Veritabanında tablolar (exercises, workout_routines, foods) yoksa otomatik oluşturan ve boşsa tüm standart verileri/resimleri yükleyen akıllı başlatıcı.
+4. `db.php`: Canlı hosting veritabanı bağlantı ayarları (CORS ve PDO).
+5. `register.php`: Mobil ve web'den yeni üye kayıt endpoint'i.
+6. `login.php`: Güvenli Bcrypt şifre doğrulama ve giriş endpoint'i.
+7. `schema.sql`: İsteğe bağlı olarak phpMyAdmin'den manuel çalıştırmak isteyenler için SQL şeması.
 
 --------------------------------------------------------------------
-ADIM 2: Tabloyu Oluşturma (phpMyAdmin)
+CPANEL DOSYA YÜKLEME ADIMLARI
 --------------------------------------------------------------------
-1. cPanel ana sayfasına dönüp "phpMyAdmin" simgesine tıklayın.
-2. Sol menüden 1. adımda oluşturduğunuz veritabanını seçin.
-3. Üst menüdeki "SQL" sekmesine tıklayın.
-4. `schema.sql` dosyasının içindeki SQL kodunu kopyalayıp buraya yapıştırın ve "Git" (Go) butonuna basın.
-   (`users` tablosu başarıyla oluşturulacaktır).
+1. Hosting cPanel'e giriş yapın -> "Dosya Yöneticisi" (File Manager) açın.
+2. `public_html/api` klasörüne gidin.
+3. Bu klasördeki dosyaları (`admin.php`, `get_content.php`, `init_tables.php`, `schema.sql`) yükleyip mevcutların üzerine yazdırın.
+4. Tarayıcınızdan şu linke gidin:
+   https://huseyincanli.com/api/admin.php
+5. Giriş yapın:
+   - E-Posta: huseyincanli@gmail.com
+   - Şifre: 15715799
 
---------------------------------------------------------------------
-ADIM 3: db.php Dosyasını Düzenleme
---------------------------------------------------------------------
-`db.php` dosyasını Not Defteri veya herhangi bir editör ile açın:
-- `$db_name = "VERITABANI_ADINIZ";` -> 1. adımda açtığınız veritabanı adını yazın.
-- `$db_user = "VERITABANI_KULLANICI_ADINIZ";` -> 1. adımdaki kullanıcı adını yazın.
-- `$db_pass = "VERITABANI_SIFRENIZ";` -> Belirlediğiniz şifreyi yazın.
-Dosyayı kaydedin.
-
---------------------------------------------------------------------
-ADIM 4: Dosyaları Hostinginize Yükleme
---------------------------------------------------------------------
-1. cPanel'den "Dosya Yöneticisi" (File Manager) bölümüne girin.
-2. `public_html` klasörünü açın.
-3. İçine `api` adında yeni bir klasör oluşturun (Yol: `public_html/api/`).
-4. Bu klasör içine aşağıdaki 4 dosyayı yükleyin:
-   - `db.php`
-   - `register.php`
-   - `login.php`
-   - `test_connection.php`
-
---------------------------------------------------------------------
-ADIM 5: Test Edin!
---------------------------------------------------------------------
-İnternet tarayıcınızı açın ve şu adrese gidin:
-https://siteniz.com/api/test_connection.php
-(siteniz.com yerine kendi alan adınızı yazın)
-
-Ekranda şu yazıyı görüyorsanız her şey kusursuz çalışıyor demektir:
-{"success":true,"message":"Tebrikler! GymTrack Hosting API ve Veritabanı başarıyla çalışıyor! 🚀"}
-
---------------------------------------------------------------------
-ADIM 6: Uygulamaya Bağlama
---------------------------------------------------------------------
-GymTrack uygulamasını açın -> Hesap / Yönetici Ayarları -> "Özel Hosting Bağlantısı"
-bölümüne alan adınızın API adresini yazın:
-Örn: https://siteniz.com/api
-
-Artık tüm kullanıcılar doğrudan sizin hostinginize kaydolacak ve giriş yapacaktır!
-Şifreler Bcrypt algoritmasıyla tek yönlü ve şifreli saklanır.
+Tebrikler! Artık uygulamanın tüm egzersizlerini, GIF'lerini, antrenman programlarını
+ve resimli besinlerini tek tıkla tarayıcınızdan düzenleyebilirsiniz! 🚀
 ====================================================================

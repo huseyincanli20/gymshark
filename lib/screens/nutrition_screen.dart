@@ -6,6 +6,7 @@ import '../models/user_profile.dart';
 import '../utils/app_locale.dart';
 import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
+import '../services/food_repository.dart';
 import 'barcode_scanner_screen.dart';
 
 class NutritionScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
   void initState() {
     super.initState();
     UserSession.current.addListener(_onProfileChanged);
+    FoodRepository.instance.addListener(_onProfileChanged);
   }
 
   void _onProfileChanged() {
@@ -29,6 +31,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
   @override
   void dispose() {
     UserSession.current.removeListener(_onProfileChanged);
+    FoodRepository.instance.removeListener(_onProfileChanged);
     super.dispose();
   }
 
@@ -51,6 +54,7 @@ class _NutritionScreenState extends State<NutritionScreen> {
     final proteinController = TextEditingController();
     final carbsController = TextEditingController();
     final fatController = TextEditingController();
+    final imageUrlController = TextEditingController();
     String selectedCategory = 'Özel / Tarif';
 
     showDialog(
@@ -132,6 +136,18 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
+                    TextField(
+                      controller: imageUrlController,
+                      decoration: InputDecoration(
+                        labelText: "Fotoğraf / Görsel URL (İsteğe bağlı)",
+                        hintText: "https://...jpg veya .png",
+                        prefixIcon: const Icon(Icons.image, size: 20, color: AppTheme.textSecondary),
+                        filled: true,
+                        fillColor: AppTheme.surfaceColor,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                     const Text("Makro Değerleri (100g için):", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
                     const SizedBox(height: 8),
                     Row(
@@ -189,12 +205,13 @@ class _NutritionScreenState extends State<NutritionScreen> {
                     backgroundColor: AppTheme.accent,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     final name = nameController.text.trim();
                     final cal = double.tryParse(calController.text.replaceAll(',', '.')) ?? 0;
                     final protein = double.tryParse(proteinController.text.replaceAll(',', '.')) ?? 0;
                     final carbs = double.tryParse(carbsController.text.replaceAll(',', '.')) ?? 0;
                     final fat = double.tryParse(fatController.text.replaceAll(',', '.')) ?? 0;
+                    final imgUrl = imageUrlController.text.trim();
 
                     if (name.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -211,26 +228,28 @@ class _NutritionScreenState extends State<NutritionScreen> {
                       carbs: carbs,
                       fat: fat,
                       category: selectedCategory,
+                      imageUrl: imgUrl,
                     );
 
-                    // Listeye en başa ekle
-                    MockData.foods.insert(0, newFood);
-                    Navigator.pop(context);
+                    // Listeye ekle ve depola
+                    await FoodRepository.instance.addFood(newFood);
+                    if (context.mounted) Navigator.pop(context);
                     if (onCreated != null) {
                       onCreated();
                     } else {
                       setState(() {});
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("✨ \"$name\" besinler listesine eklendi!"),
-                        backgroundColor: AppTheme.accent,
-                      ),
-                    );
-
-                    // Hemen gram seçme ekranını aç
-                    _showGramPicker(newFood);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("✨ \"$name\" besinler listesine eklendi!"),
+                          backgroundColor: AppTheme.accent,
+                        ),
+                      );
+                      // Hemen gram seçme ekranını aç
+                      _showGramPicker(newFood);
+                    }
                   },
                   child: const Text("Kaydet & Ekle", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 ),
@@ -254,7 +273,10 @@ class _NutritionScreenState extends State<NutritionScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final filteredFoods = MockData.foods.where((f) {
+            final allFoods = FoodRepository.instance.foods.isNotEmpty
+                ? FoodRepository.instance.foods
+                : MockData.foods;
+            final filteredFoods = allFoods.where((f) {
               return f.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
                      f.category.toLowerCase().contains(searchQuery.toLowerCase());
             }).toList();
@@ -337,6 +359,28 @@ class _NutritionScreenState extends State<NutritionScreen> {
                           final food = filteredFoods[index];
                           final isCustom = food.id.startsWith("custom_");
                           return ListTile(
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: (food.imageUrl.isNotEmpty)
+                                  ? Image.network(
+                                      food.imageUrl,
+                                      width: 44,
+                                      height: 44,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 44,
+                                        height: 44,
+                                        color: AppTheme.surfaceColor,
+                                        child: const Icon(Icons.restaurant, size: 20, color: AppTheme.accent),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 44,
+                                      height: 44,
+                                      color: AppTheme.surfaceColor,
+                                      child: const Icon(Icons.restaurant, size: 20, color: AppTheme.textSecondary),
+                                    ),
+                            ),
                             title: Row(
                               children: [
                                 Expanded(child: Text(food.name, style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -527,6 +571,25 @@ class _NutritionScreenState extends State<NutritionScreen> {
       appBar: AppBar(
         title: Text(AppLocale.get('nutrition_title')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_sync, color: AppTheme.accent),
+            tooltip: AppLocale.isEnglish ? "Sync from Cloud" : "Veritabanından Eşitle",
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Besinler sunucudan senkronize ediliyor..."), duration: Duration(seconds: 1)),
+              );
+              final ok = await FoodRepository.instance.syncFromWeb();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok ? "Besin listesi başarıyla güncellendi! 🥗" : "Sunucuya bağlanılamadı, yerel liste korunuyor."),
+                    backgroundColor: ok ? AppTheme.accent : Colors.orange,
+                  ),
+                );
+                setState(() {});
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: AppTheme.primary),
             tooltip: AppLocale.get('barcode_scan'),

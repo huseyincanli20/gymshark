@@ -4,6 +4,7 @@ import '../models/workout_manager.dart';
 import '../models/fitness_models.dart';
 import '../models/user_profile.dart';
 import '../services/exercise_repository.dart';
+import '../services/routine_repository.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_locale.dart';
 import 'workout_tracker_screen.dart';
@@ -19,11 +20,29 @@ class _WorkoutRoutinesScreenState extends State<WorkoutRoutinesScreen> {
   String _selectedCategory = 'Tümü';
 
   @override
+  void initState() {
+    super.initState();
+    RoutineRepository.instance.addListener(_onRoutinesChanged);
+  }
+
+  void _onRoutinesChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    RoutineRepository.instance.removeListener(_onRoutinesChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final profile = UserSession.current;
     final isEn = AppLocale.isEnglish;
-    final defaultRoutines = WorkoutRoutine.getDefaultRoutines();
-    final allRoutines = [...defaultRoutines, ...profile.customRoutines];
+    final repoRoutines = RoutineRepository.instance.routines.isNotEmpty
+        ? RoutineRepository.instance.routines
+        : WorkoutRoutine.getDefaultRoutines();
+    final allRoutines = [...repoRoutines, ...profile.customRoutines];
 
     final categories = ['Tümü', 'PPL', 'Upper/Lower', '5x5', 'Full Body', 'Özel'];
 
@@ -37,6 +56,25 @@ class _WorkoutRoutinesScreenState extends State<WorkoutRoutinesScreen> {
       appBar: AppBar(
         title: Text(AppLocale.get('routines_title')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_sync, color: AppTheme.accent),
+            tooltip: isEn ? "Sync Routines from Cloud" : "Antrenmanları Veritabanından Eşitle",
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(isEn ? "Syncing routines from server..." : "Antrenman programları sunucudan güncelleniyor..."), duration: const Duration(seconds: 1)),
+              );
+              final ok = await RoutineRepository.instance.syncFromWeb();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok ? (isEn ? "Routines updated successfully! 🏋️" : "Antrenman programları veritabanından güncellendi! 🏋️") : (isEn ? "Could not connect to server, using local data." : "Sunucuya bağlanılamadı, yerel veriler kullanılıyor.")),
+                    backgroundColor: ok ? AppTheme.accent : Colors.orange,
+                  ),
+                );
+                setState(() {});
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add_circle, color: AppTheme.accent),
             tooltip: AppLocale.get('create_routine'),

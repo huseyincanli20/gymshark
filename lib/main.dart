@@ -7,12 +7,16 @@ import 'models/user_profile.dart';
 import 'theme/app_theme.dart';
 
 import 'services/exercise_repository.dart';
+import 'services/food_repository.dart';
+import 'services/routine_repository.dart';
 import 'utils/app_locale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await UserSession.init();
   await ExerciseRepository.instance.init();
+  await FoodRepository.instance.init();
+  await RoutineRepository.instance.init();
   runApp(const GymTrackApp());
 }
 

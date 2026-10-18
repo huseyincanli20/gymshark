@@ -230,6 +230,7 @@ class MockData {
       carbs: 0.0,
       fat: 3.6,
       category: 'Et & Protein',
+      imageUrl: 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_2',
@@ -239,6 +240,7 @@ class MockData {
       carbs: 0.0,
       fat: 15.0,
       category: 'Et & Protein',
+      imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_3',
@@ -248,6 +250,7 @@ class MockData {
       carbs: 0.0,
       fat: 13.4,
       category: 'Et & Protein',
+      imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_4',
@@ -257,6 +260,7 @@ class MockData {
       carbs: 0.0,
       fat: 1.0,
       category: 'Et & Protein',
+      imageUrl: 'https://images.unsplash.com/photo-1501595091296-3aa970afb3ff?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_5',
@@ -266,6 +270,7 @@ class MockData {
       carbs: 0.0,
       fat: 1.5,
       category: 'Et & Protein',
+      imageUrl: 'https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=400&q=80',
     ),
 
     // --- TEMEL BESİN & YUMURTA & SÜT ---
@@ -277,6 +282,7 @@ class MockData {
       carbs: 1.1,
       fat: 11.0,
       category: 'Temel Besin',
+      imageUrl: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_7',
@@ -286,6 +292,7 @@ class MockData {
       carbs: 0.7,
       fat: 0.2,
       category: 'Temel Besin',
+      imageUrl: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_8',
@@ -295,6 +302,7 @@ class MockData {
       carbs: 3.4,
       fat: 4.3,
       category: 'Süt Ürünleri',
+      imageUrl: 'https://images.unsplash.com/photo-1559561853-08451507cbe7?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_9',
@@ -304,6 +312,7 @@ class MockData {
       carbs: 4.0,
       fat: 4.5,
       category: 'Süt Ürünleri',
+      imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_10',
@@ -313,6 +322,7 @@ class MockData {
       carbs: 4.8,
       fat: 3.3,
       category: 'Süt Ürünleri',
+      imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=400&q=80',
     ),
 
     // --- KARBONHİDRAT VE TAHILLAR ---
@@ -324,6 +334,7 @@ class MockData {
       carbs: 66.3,
       fat: 6.9,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_12',
@@ -333,6 +344,7 @@ class MockData {
       carbs: 28.2,
       fat: 0.3,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_13',
@@ -342,6 +354,7 @@ class MockData {
       carbs: 23.0,
       fat: 0.9,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_14',
@@ -351,6 +364,7 @@ class MockData {
       carbs: 20.1,
       fat: 0.1,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_15',
@@ -360,6 +374,7 @@ class MockData {
       carbs: 20.1,
       fat: 0.1,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_16',
@@ -369,6 +384,7 @@ class MockData {
       carbs: 30.9,
       fat: 0.9,
       category: 'Karbonhidrat',
+      imageUrl: 'https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=80',
     ),
 
     // --- BAKLİYAT ---
@@ -380,6 +396,7 @@ class MockData {
       carbs: 20.0,
       fat: 0.4,
       category: 'Bakliyat',
+      imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_18',
@@ -389,6 +406,7 @@ class MockData {
       carbs: 27.4,
       fat: 2.6,
       category: 'Bakliyat',
+      imageUrl: 'https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=400&q=80',
     ),
 
     // --- MEYVELER & SAĞLIKLI YAĞLAR ---
@@ -400,6 +418,7 @@ class MockData {
       carbs: 22.8,
       fat: 0.3,
       category: 'Meyve',
+      imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_20',
@@ -409,6 +428,7 @@ class MockData {
       carbs: 13.8,
       fat: 0.2,
       category: 'Meyve',
+      imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_21',
@@ -418,6 +438,7 @@ class MockData {
       carbs: 8.5,
       fat: 14.7,
       category: 'Sağlıklı Yağlar',
+      imageUrl: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_22',
@@ -427,6 +448,7 @@ class MockData {
       carbs: 21.6,
       fat: 49.9,
       category: 'Sağlıklı Yağlar',
+      imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_23',
@@ -436,6 +458,7 @@ class MockData {
       carbs: 20.0,
       fat: 50.0,
       category: 'Sağlıklı Yağlar',
+      imageUrl: 'https://images.unsplash.com/photo-1568651316499-52e850b5551c?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_24',
@@ -445,6 +468,7 @@ class MockData {
       carbs: 0.0,
       fat: 100.0,
       category: 'Sağlıklı Yağlar',
+      imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80',
     ),
 
     // --- İÇECEKLER & SUPPLEMENT ---
@@ -456,6 +480,7 @@ class MockData {
       carbs: 6.0,
       fat: 4.0,
       category: 'İçecek & Takviye',
+      imageUrl: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_26',
@@ -465,6 +490,7 @@ class MockData {
       carbs: 0.0,
       fat: 0.0,
       category: 'İçecek',
+      imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_27',
@@ -474,6 +500,7 @@ class MockData {
       carbs: 0.0,
       fat: 0.0,
       category: 'İçecek',
+      imageUrl: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_28',
@@ -483,6 +510,7 @@ class MockData {
       carbs: 10.4,
       fat: 0.2,
       category: 'İçecek',
+      imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_29',
@@ -492,6 +520,7 @@ class MockData {
       carbs: 0.0,
       fat: 0.0,
       category: 'İçecek',
+      imageUrl: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80',
     ),
     FoodItem(
       id: 'f_30',
@@ -501,6 +530,7 @@ class MockData {
       carbs: 3.7,
       fat: 0.2,
       category: 'İçecek',
+      imageUrl: 'https://images.unsplash.com/photo-1525385133512-2f3bdd039054?auto=format&fit=crop&w=400&q=80',
     ),
   ];
 }
